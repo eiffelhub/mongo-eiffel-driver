@@ -6,9 +6,7 @@ Status: under development.
 
 http://mongoc.org/libmongoc/current/installing.html
 
-#Installing MongoDB
-
-# mongodb
+# Installing MongoDB
 
 Tutorial: https://docs.mongodb.com/manual/tutorial/install-mongodb-on-windows/
 
