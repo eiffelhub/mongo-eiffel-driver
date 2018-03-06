@@ -8,6 +8,13 @@ http://mongoc.org/libmongoc/current/installing.html
 
 # Installing MongoDB
 
-Tutorial: https://docs.mongodb.com/manual/tutorial/install-mongodb-on-windows/
+Tutorial: 
+  * Windows: https://docs.mongodb.com/manual/tutorial/install-mongodb-on-windows/
+
+  * Linux:   http://mongoc.org/libmongoc/current/installing.html#building-from-a-release-tarball
+
+	
+
+  
 
 

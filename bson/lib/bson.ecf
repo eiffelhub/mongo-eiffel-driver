@@ -17,11 +17,23 @@
 				<platform value="windows"/>
 			</condition>
 		</external_include>
+		<external_include location="/usr/local/include/libbson-1.0">
+			<condition>
+				<platform excluded_value="windows"/>
+			</condition>
+		</external_include>
+
 		<external_object location="$ECF_CONFIG_PATH\..\..\C\mongo-c-driver\lib\bson-1.0.lib">
 			<condition>
 				<platform value="windows"/>
 			</condition>
 		</external_object>
+
+		<external_linker_flag value="-lbson-1.0">
+			<condition>
+				<platform excluded_value="windows"/>
+			</condition>
+		</external_linker_flag>	
 	
 		<library name="base" location="$ISE_LIBRARY\library\base\base.ecf"/>
 		<library name="time" location="$ISE_LIBRARY\library\time\time.ecf"/>

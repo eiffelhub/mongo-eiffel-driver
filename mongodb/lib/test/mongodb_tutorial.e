@@ -23,7 +23,7 @@ feature -- Tutorial
 			l_insert: BSON
 		do
 				-- Initialize and create a new mongobd client instance.
-			create l_client.make ("mongodb://localhost:27017")
+			create l_client.make ("mongodb://127.0.0.1:27017")
 
 		     	-- Register the application name so we can track it in the profile logs
 		     	-- on the server. This can also be done from the URI (see other examples).
