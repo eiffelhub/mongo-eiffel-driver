@@ -21,7 +21,7 @@ inherit
 		end
 
 create
-	make, make_empty, make_by_pointer
+	make, make_empty, make_by_pointer, make_from_json
 
 feature {NONE}-- Initialization
 
@@ -48,6 +48,18 @@ feature {NONE}-- Initialization
 			create managed_pointer.share_from_pointer (a_ptr, structure_size)
 			internal_item := a_ptr
 			shared := True
+		end
+
+	make_from_json (a_data: STRING_8)
+		local
+			l_data: C_STRING
+			l_error: BSON_ERROR
+			l_pointer: POINTER
+		do
+			create l_error
+			create l_data.make (a_data)
+			l_pointer := c_bson_new_from_json (l_data.item, l_data.count, l_error.item)
+			make_by_pointer (l_pointer)
 		end
 
 feature -- Access
@@ -652,7 +664,6 @@ feature {NONE} -- C externals
 			"return bson_concat ((const bson_t *)$a_dst, (const bson_t *)$a_src);"
 		end
 
-
 	c_bson_copy (a_bson: POINTER): POINTER
 		external
 			"C inline use <bson.h>"
@@ -687,4 +698,9 @@ feature {NONE} -- C externals
 			"return ((bson_t *) $a_bson)->len;"
 		end
 
+	c_bson_new_from_json (a_data: POINTER; a_len: INTEGER; a_error: POINTER): POINTER
+		external "C inline use <bson.h>"
+		alias
+			"return bson_new_from_json ((const uint8_t *)$a_data, (ssize_t)$a_len, (bson_error_t *)$a_error);"
+		end
 end

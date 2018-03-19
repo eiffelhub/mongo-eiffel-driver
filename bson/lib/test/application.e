@@ -17,6 +17,8 @@ feature {NONE} -- Initialization
 	make
 			-- Run application.
 		do
+			print ("Test BSON from JSON%N")
+			test_creeate_bson_from_json
 			print ("Test BSON Empty Document%N")
 			test_create_empty_document
 			print ("%N Test BSON Document%N")
@@ -102,6 +104,16 @@ feature {NONE} -- Initialization
 			io.put_new_line
 			print (l_dec.to_string)
 		end
+
+	test_create_empty_document
+		local
+			l_bson: BSON
+		do
+				-- This creates an empty document. In JSON, this would be the same as {}.
+			create l_bson.make_from_json (a_data: STRING_8)
+			print (l_bson.bson_as_json)
+		end
+
 
 
 	test_create_empty_document

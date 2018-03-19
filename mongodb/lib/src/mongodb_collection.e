@@ -59,7 +59,6 @@ feature -- Access
 			create Result.make_by_pointer (l_pointer)
 		end
 
-
 	count (a_flags: INTEGER; a_query: BSON; a_skip: INTEGER_64; a_limit: INTEGER_64; a_read_prefs: detachable MONGODB_READ_PREFERENCE; a_error: detachable BSON_ERROR): INTEGER_64
 			-- This feature shall execute a count query `a_query' on the current collection.
 			-- 'a_flags': A mongoc_query_flags_t.
@@ -83,6 +82,11 @@ feature -- Access
 				l_error := a_error.item
 			end
 			Result := {MONGODB_EXTERNALS}.c_mongoc_collection_count (item, a_flags, a_query.item, a_skip, a_limit, l_read_prefs, l_error)
+			if Result = -1 then
+				last_execution := False
+			else
+				last_execution := True
+			end
 		end
 
 feature -- Command
@@ -96,7 +100,6 @@ feature -- Command
 		note
 			EIS: "name=mongoc_collection_insert_one", "src=http://mongoc.org/libmongoc/current/mongoc_collection_insert_one.html", "protocol=uri"
 		local
-			l_res: BOOLEAN
 			l_opts: POINTER
 			l_reply: POINTER
 			l_error: POINTER
@@ -110,9 +113,8 @@ feature -- Command
 			if attached a_error then
 				l_error := a_error.item
 			end
-			l_res := {MONGODB_EXTERNALS}.c_mongoc_collection_insert_one (item, a_document.item, l_opts, l_reply, l_error)
+			last_execution := {MONGODB_EXTERNALS}.c_mongoc_collection_insert_one (item, a_document.item, l_opts, l_reply, l_error)
 		end
-
 
 	update_one (a_selector: BSON; a_update: BSON; a_opts: detachable BSON; a_reply: detachable BSON; a_error: detachable BSON_ERROR)
 			-- a_selector: A bson_t containing the query to match the document for updating.
@@ -138,7 +140,7 @@ feature -- Command
 			if attached a_error then
 				l_error := a_error.item
 			end
-			l_res := {MONGODB_EXTERNALS}.c_mongoc_collection_update_one (item, a_selector.item, a_update.item, l_opts, l_reply, l_error)
+			last_execution := {MONGODB_EXTERNALS}.c_mongoc_collection_update_one (item, a_selector.item, a_update.item, l_opts, l_reply, l_error)
 		end
 
 	delete_one (a_selector: BSON; a_opts: detachable BSON; a_reply: detachable BSON; a_error: detachable BSON_ERROR )
@@ -164,8 +166,21 @@ feature -- Command
 			if attached a_error then
 				l_error := a_error.item
 			end
-			l_res := {MONGODB_EXTERNALS}.c_mongoc_collection_delete_one (item, a_selector.item, l_opts, l_reply, l_error)
+			last_execution := {MONGODB_EXTERNALS}.c_mongoc_collection_delete_one (item, a_selector.item, l_opts, l_reply, l_error)
 		end
+
+feature -- Status Report
+
+	has_error: BOOLEAN
+			-- Indicates that there was an error during the last operation
+		do
+			Result := last_execution
+		end
+
+feature {NONE} -- Implementation
+
+	last_execution: BOOLEAN
+			-- True if successful or false in other case, check the BSON_ERROR for details. 		
 
 feature {NONE} -- Measurement
 
