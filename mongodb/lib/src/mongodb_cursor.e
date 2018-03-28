@@ -53,13 +53,12 @@ feature
 			EIS: "name=mongoc_cursor_next", "src=http://mongoc.org/libmongoc/current/mongoc_cursor_next.html", "protocol=uri"
 		local
 			l_pointer: POINTER
-			l_bson: BSON
 		do
 
-			if {MONGODB_EXTERNALS}.c_mongo_cursor_next (item, $l_pointer)  then
+			if {MONGODB_EXTERNALS}.c_mongo_cursor_next (item, $l_pointer) then
 				create Result.make_by_pointer (l_pointer)
 			else
-				-- cursor exhausted or error
+					-- cursor exhausted or error
 			end
 		end
 

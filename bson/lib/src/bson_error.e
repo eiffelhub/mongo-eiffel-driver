@@ -26,8 +26,6 @@ feature {NONE} -- Creation
 
 	default_create
 			-- Initialize an empty Error structure,
-		local
-			res: INTEGER_32
 		do
 			make
 		end

@@ -38,8 +38,6 @@ feature {NONE} -- Creation
 
 	make_empty
 			-- Initialize an empty OID structure,
-		local
-			res: INTEGER_32
 		do
 			make_memory
 		end
@@ -56,7 +54,6 @@ feature {NONE} -- Creation
 		require
 			a_string /= Void
 		local
-			res: INTEGER_32
 			c_str: C_STRING
 		do
 			create c_str.make (a_string)
@@ -70,11 +67,6 @@ feature -- Access
 
 	oid_to_string: STRING_32
 		local
-			l_ptr: POINTER
-			l_mgr: MANAGED_POINTER
-			l_memory: MANAGED_POINTER
-			l_array: ARRAY [NATURAL_8]
-			i: INTEGER
 			l_string: C_STRING
 		do
 			create l_string.make_empty (25)
@@ -96,8 +88,6 @@ feature -- Access
 feature -- Delete
 
 	delete
-		local
-			rc: INTEGER_32
 		do
 			any_data := Void
 		end
