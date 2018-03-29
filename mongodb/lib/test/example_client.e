@@ -15,8 +15,6 @@ feature -- Initialization
 	make
 		local
 			l_client: MONGODB_CLIENT
-			l_database: MONGODB_DATABASE
-			l_collection: MONGODB_COLLECTION
 			l_bson: BSON
 		do
 			create l_client.make ("mongodb://127.0.0.1/?appname=client-example")

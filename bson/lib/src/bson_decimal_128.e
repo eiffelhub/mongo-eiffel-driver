@@ -27,8 +27,6 @@ feature {NONE} -- Creation
 
 	default_create
 			-- Initialize an empty decimal structure,
-		local
-			res: INTEGER_32
 		do
 			make
 		end
