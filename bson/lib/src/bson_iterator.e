@@ -19,12 +19,9 @@ inherit
 			{ANY} managed_pointer
 		undefine
 			default_create
-		redefine
-			make_by_pointer,
-			managed_pointer
 		end
 
-create default_create, make_by_pointer
+create default_create, make_own_from_pointer
 
 feature {NONE} -- Creation
 
@@ -36,12 +33,12 @@ feature {NONE} -- Creation
 			make
 		end
 
-	make_by_pointer (a_ptr: POINTER)
+	make_own_from_pointer (a_ptr: POINTER)
 			-- Initialize current with `a_ptr'.
 		do
-			create managed_pointer.share_from_pointer (a_ptr, structure_size)
+			create managed_pointer.own_from_pointer (a_ptr, structure_size)
 			internal_item := a_ptr
-			shared := True
+			shared := False
 		end
 
 feature -- Operations
@@ -87,11 +84,6 @@ feature {NONE} -- C externals
 		alias
 			"return bson_iter_key ((const bson_iter_t *)$a_iter);"
 		end
-
-feature {ANY}
-
-	managed_pointer: MANAGED_POINTER
-			-- <Precursor>
 
 feature {NONE} -- Implementation
 

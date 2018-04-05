@@ -20,13 +20,10 @@ inherit
 			make as make_memory
 		export
 			{ANY} managed_pointer
-		redefine
-			make_by_pointer,
-			managed_pointer
 		end
 
 create
-	make, make_empty, make_by_pointer, with_string
+	make, make_empty, make_own_from_pointer, make_with_string
 
 feature {NONE} -- Creation
 
@@ -42,15 +39,15 @@ feature {NONE} -- Creation
 			make_memory
 		end
 
-	make_by_pointer (a_ptr: POINTER)
+	make_own_from_pointer (a_ptr: POINTER)
 			-- Initialize current with `a_ptr'.
 		do
-			create managed_pointer.share_from_pointer (a_ptr, structure_size)
+			create managed_pointer.own_from_pointer (a_ptr, structure_size)
 			internal_item := a_ptr
-			shared := True
+			shared := False
 		end
 
-	with_string (a_string: STRING)
+	make_with_string (a_string: STRING)
 		require
 			a_string /= Void
 		local
@@ -75,7 +72,7 @@ feature -- Access
 		end
 
 	bson_oid_init (a_context: detachable BSON_CONTEXT)
-			-- An optional bson_context_t `a_context'
+			-- An optional bson_context_t `a_context'.
 		local
 			l_context: POINTER
 		do
@@ -91,11 +88,6 @@ feature -- Delete
 		do
 			any_data := Void
 		end
-
-feature {ANY}
-
-	managed_pointer: MANAGED_POINTER
-			-- <Precursor>
 
 feature {NONE} -- Implementation
 
@@ -113,7 +105,6 @@ feature {NONE} -- Implementation
 			"bson_oid_init_from_string ((bson_oid_t *)$a_oid, (const char *)$a_str);"
 		end
 
-
 	c_bson_oid_to_string (a_oid: POINTER; a_str: POINTER)
 		external
 			"C inline use <bson.h>"
@@ -123,9 +114,8 @@ feature {NONE} -- Implementation
 			]"
 		end
 
-
 	any_data: detachable ANY
-			-- Reference to the data feed at creation time using `with_string'
+			-- Reference to the data feed at creation time using `make_with_string'.
 
 	structure_size: INTEGER
 			-- Size to allocate (in bytes)

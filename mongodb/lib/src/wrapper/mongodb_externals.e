@@ -166,6 +166,38 @@ feature -- Client
 		]"
 		end
 
+
+	c_mongoc_client_get_database_names_with_opts (a_client: POINTER; a_opts: POINTER; a_error: POINTER): POINTER
+		external "C inline use <mongoc.h>"
+		alias
+		"[
+		   char **strv;
+		   strv = mongoc_client_get_database_names_with_opts ($a_client, $a_opts, $a_error);
+	 	   return strv;
+		]"
+		end
+
+	c_mongoc_client_get_database_names_count (a_client: POINTER; a_opts: POINTER; a_error: POINTER): INTEGER
+		external "C inline use <mongoc.h>"
+		alias
+		"[
+		   char **strv;
+		   strv = mongoc_client_get_database_names_with_opts ($a_client, $a_opts, $a_error);
+		   int i;
+		   for (i = 0; strv[i]; i++);
+		   return i;
+		]"
+		end
+
+
+	c_mongoc_client_get_uri (a_client: POINTER): POINTER
+		external "C inline use <mongoc.h>"
+		alias
+			"[
+				return mongoc_client_get_uri ((const mongoc_client_t *)$a_client);
+			]"
+		end
+
 feature -- Mongo Collection
 
 	c_mongoc_collection_insert_one (a_collection: POINTER; a_document: POINTER; a_opts: POINTER; a_reply: POINTER; a_error: POINTER): BOOLEAN
@@ -228,7 +260,7 @@ feature -- Mongo Collection
 			                         (int64_t)$a_skip,
 			                         (int64_t)$a_limit,
 			                         (const mongoc_read_prefs_t *)$a_read_prefs,
-			                         (bson_error_t *)$a_error);			
+			                         (bson_error_t *)$a_error);
 			]"
 		end
 
@@ -239,6 +271,33 @@ feature -- Cursor
 		alias
 			"[
 				return (EIF_BOOLEAN) mongoc_cursor_next ((mongoc_cursor_t *)$a_cursor, (const bson_t **)$a_bson);
+			]"
+		end
+
+
+feature -- URI
+
+	c_mongoc_uri_new (a_uri: POINTER): POINTER
+		external "C inline use <mongoc.h>"
+		alias
+			"[
+				return mongoc_uri_new ((const char *)$a_uri);
+			]"
+		end
+
+	c_mongoc_uri_copy (a_uri: POINTER): POINTER
+		external "C inline use <mongoc.h>"
+		alias
+			"[
+				return mongoc_uri_copy ((const mongoc_uri_t *)$a_uri);
+			]"
+		end
+
+	c_mongoc_uri_get_string (a_uri: POINTER): POINTER
+		external "C inline use <mongoc.h>"
+		alias
+			"[
+				return mongoc_uri_get_string ((const mongoc_uri_t *)$a_uri);
 			]"
 		end
 end

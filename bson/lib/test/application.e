@@ -29,8 +29,6 @@ feature {NONE} -- Initialization
 			test_bson_sub_array
 			print ("%N Test BSON Binary%N")
 			test_bson_binary
-			print ("%N Test BSON Undefined%N")
-			test_bson_undefined
 			print ("%N Test BSON Null%N")
 			test_bson_null
 			print ("%N Test BSON OID%N")
@@ -45,12 +43,8 @@ feature {NONE} -- Initialization
 			test_bson_timestamp
 			print ("%N Test BSON regex%N")
 			test_bson_regex
-			print ("%N Test BSON dbpointer%N")
-			test_bson_dbpointer
 			print ("%N Test BSON max and min keys%N")
 			test_bson_max_min_keys
-			print ("%N Test BSON symbol%N")
-			test_bson_symbol
 			print ("%N Test BSON Big Decimal%N")
 			test_bson_big_decimal
 			print ("%N Test BSON code%N")
@@ -90,7 +84,7 @@ feature {NONE} -- Initialization
 			l_dec.set_low (0x00000000075aef40)
 			print (l_dec.to_string)
 			io.put_new_line
-			create l_dec.with_string ("0.1234567890123456789012345678901234")
+			create l_dec.make_with_string ("0.1234567890123456789012345678901234")
 			print (l_dec.to_string)
 			io.put_new_line
 			print (l_dec.high)
@@ -110,13 +104,13 @@ feature {NONE} -- Initialization
 			l_bson: BSON
 		do
 				-- This creates an empty document. In JSON, this would be the same as {}.
-			create l_bson.make_from_json (a_data: STRING_8)
+			create l_bson.make_empty
 			print (l_bson.bson_as_json)
 		end
 
 
 
-	test_create_empty_document
+	test_creeate_bson_from_json
 		local
 			l_bson: BSON
 		do
@@ -186,16 +180,6 @@ feature {NONE} -- Initialization
 			print (l_bson.bson_as_json)
 		end
 
-	test_bson_undefined
-		local
-			l_bson: BSON
-		do
-			create l_bson.make
-			l_bson.bson_append_undefined ("undefined")
-			print (l_bson.bson_as_json)
-		end
-
-
 	test_bson_null
 		local
 			l_bson: BSON
@@ -205,12 +189,11 @@ feature {NONE} -- Initialization
 			print (l_bson.bson_as_json)
 		end
 
-
 	test_bson_oid
 		local
 			l_oid: BSON_OID
 		do
-			create l_oid.with_string ("123412341234abcdabcdabcd")
+			create l_oid.make_with_string ("123412341234abcdabcdabcd")
 			print (l_oid.oid_to_string)
 		end
 
@@ -220,7 +203,7 @@ feature {NONE} -- Initialization
 			l_oid: BSON_OID
 		do
 			create l_bson.make
-			create l_oid.with_string ("123412341234abcdabcdabcd")
+			create l_oid.make_with_string ("123412341234abcdabcdabcd")
 			l_bson.bson_append_oid ("oid", l_oid)
 			print (l_bson.bson_as_json)
 		end
@@ -278,18 +261,6 @@ feature {NONE} -- Initialization
 			print (l_bson.bson_as_json)
 		end
 
-
-	test_bson_dbpointer
-		local
-			l_bson: BSON
-			l_oid: BSON_OID
-		do
-			create l_bson.make
-			create l_oid.with_string ("123412341234abcdabcdabcd")
-			l_bson.bson_append_dbpointer ("dbpointer", "mycollection", l_oid)
-			print (l_bson.bson_as_json)
-		end
-
 	test_bson_max_min_keys
 		local
 			l_bson: BSON
@@ -301,22 +272,12 @@ feature {NONE} -- Initialization
 		end
 
 
-	test_bson_symbol
-		local
-			l_bson: BSON
-		do
-			create l_bson.make
-			l_bson.bson_append_symbol ("symbol", "var a = {};")
-			print (l_bson.bson_as_json)
-		end
-
-
 	test_bson_big_decimal
 		local
 			l_bson: BSON
 			l_dec: BSON_DECIMAL_128
 		do
-			create l_dec.with_string ("0.1234567890123456789012345678901234")
+			create l_dec.make_with_string ("0.1234567890123456789012345678901234")
 			create l_bson.make
 			l_bson.bson_append_decimal128 ("decimal_128", l_dec)
 			print (l_bson.bson_as_json)

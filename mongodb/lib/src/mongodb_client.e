@@ -16,12 +16,10 @@ inherit
 	MEMORY_STRUCTURE
 		rename
 			make as memory_make
-		redefine
-			make_by_pointer
 		end
 
 create
-	make
+	make, make_own_from_pointer
 
 feature {NONE}-- Initialization
 
@@ -30,18 +28,15 @@ feature {NONE}-- Initialization
 		do
 			memory_make
 			mongoc_init
-			create uri_string.make_from_string (a_uri)
 			new_mongoc_cient (a_uri)
-		ensure
-			uri_string_set: uri_string.same_string (a_uri)
 		end
 
-	make_by_pointer (a_ptr: POINTER)
+	make_own_from_pointer (a_ptr: POINTER)
 			-- Initialize current with `a_ptr'.
 		do
-			create managed_pointer.share_from_pointer (a_ptr, structure_size)
+			create managed_pointer.own_from_pointer (a_ptr, structure_size)
 			internal_item := a_ptr
-			shared := True
+			shared := False
 		end
 
 	new_mongoc_cient (a_uri: STRING_8)
@@ -50,7 +45,7 @@ feature {NONE}-- Initialization
 			c_string: C_STRING
 		do
 			create c_string.make (a_uri)
-			make_by_pointer ({MONGODB_EXTERNALS}.c_mongoc_client_new (c_string.item))
+			make_own_from_pointer ({MONGODB_EXTERNALS}.c_mongoc_client_new (c_string.item))
 			check success: item /= default_pointer end
 		end
 
@@ -64,8 +59,11 @@ feature {NONE} -- Init
 
 feature -- Access
 
-	uri_string: STRING_8
-			-- A string containing the MongoDB connection URI.		
+	uri: MONGODB_URI
+			-- Fetches the mongoc_uri_t used to create the client.
+		do
+			create Result.make_own_from_pointer ({MONGODB_EXTERNALS}.c_mongoc_client_get_uri (item))
+		end
 
 	get_collection (a_db: STRING_8; a_colleciton: STRING): MONGODB_COLLECTION
 			-- a_db: The name of the database containing the collection.
@@ -78,7 +76,7 @@ feature -- Access
 			create c_db.make (a_db)
 			create c_collection.make (a_colleciton)
 			l_ptr := {MONGODB_EXTERNALS}.c_mongoc_client_get_collection (item, c_db.item, c_collection.item)
-			create Result.make_by_pointer (l_ptr)
+			create Result.make_own_from_pointer (l_ptr)
 		end
 
 	get_database (a_dbname: STRING_8): MONGODB_DATABASE
@@ -91,7 +89,41 @@ feature -- Access
 		do
 			create c_name.make (a_dbname)
 			l_ptr := {MONGODB_EXTERNALS}.c_mongoc_client_get_database (item, c_name.item)
-			create Result.make_by_pointer (l_ptr)
+			create Result.make_own_from_pointer (l_ptr)
+		end
+
+	get_database_names (a_opts: detachable BSON): LIST [STRING]
+			-- This function queries the MongoDB server for a list of known databases
+			-- a_opts: A bson document containing additional options.
+		note
+			EIS: "name=mongoc_client_get_database_names_with_opts ", "src=http://mongoc.org/libmongoc/current/mongoc_client_get_database_names_with_opts.html", "protocol=uri"
+		local
+			l_error: BSON_ERROR
+			l_ptr: POINTER
+			i: INTEGER
+			l_mgr: MANAGED_POINTER
+			l_opts: POINTER
+			l_res: INTEGER
+			l_cstring: C_STRING
+		do
+			if attached a_opts then
+				l_opts := a_opts.item
+			end
+			create l_error.default_create
+			create l_res.default_create
+			l_ptr := {MONGODB_EXTERNALS}.c_mongoc_client_get_database_names_with_opts (item, l_opts, l_error.item)
+			l_res := {MONGODB_EXTERNALS}.c_mongoc_client_get_database_names_count (item, l_opts, l_error.item)
+			create l_mgr.make_from_pointer (l_ptr, l_res* c_sizeof (l_ptr))
+			create {ARRAYED_LIST [STRING]} Result.make (l_res)
+			from
+				i := 0
+			until
+				i = l_mgr.count
+			loop
+				create l_cstring.make_by_pointer (l_mgr.read_pointer (i))
+				Result.force (l_cstring.string)
+				i := i + c_sizeof (l_ptr)
+			end
 		end
 
 feature -- Error
@@ -200,6 +232,13 @@ feature {NONE} -- Measurement
 			"C inline use <mongoc.h>"
 		alias
 			"return sizeof(mongoc_client_t *);"
+		end
+
+	c_sizeof (ptr: POINTER): INTEGER
+		external
+			"C inline use <mongoc.h>"
+		alias
+			"return sizeof ($ptr)"
 		end
 
 end

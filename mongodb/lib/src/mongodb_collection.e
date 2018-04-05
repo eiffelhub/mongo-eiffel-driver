@@ -1,24 +1,24 @@
 note
-	description: "Summary description for {MONGODB_COLLECTION}."
-	author: ""
+	description: "[
+		Object representing a mongoc_collection_t structure.
+		It provides access to a MongoDB collection. This handle is useful for actions for most CRUD operations, I.e. insert, update, delete, find, etc.
+	]"
 	date: "$Date$"
 	revision: "$Revision$"
+	EIS: "name=mongoc_collection_t", "src=http://mongoc.org/libmongoc/current/mongoc_collection_t.html", "protocol=uri"
 
 class
 	MONGODB_COLLECTION
-
 
 inherit
 
 	MEMORY_STRUCTURE
 		rename
 			make as memory_make
-		redefine
-			make_by_pointer
 		end
 
 create
-	make, make_by_pointer
+	make, make_own_from_pointer
 
 feature {NONE} -- Initialization
 
@@ -27,12 +27,12 @@ feature {NONE} -- Initialization
 			memory_make
 		end
 
-	make_by_pointer (a_ptr: POINTER)
+	make_own_from_pointer (a_ptr: POINTER)
 			-- Initialize current with `a_ptr'.
 		do
-			create managed_pointer.share_from_pointer (a_ptr, structure_size)
+			create managed_pointer.own_from_pointer (a_ptr, structure_size)
 			internal_item := a_ptr
-			shared := True
+			shared := False
 		end
 
 feature -- Access
@@ -56,7 +56,7 @@ feature -- Access
 				l_read_prefs := a_read_prefs.item
 			end
 			l_pointer := {MONGODB_EXTERNALS}.c_mongoc_collection_find_with_opts (item, a_filter.item, l_opts, l_read_prefs)
-			create Result.make_by_pointer (l_pointer)
+			create Result.make_own_from_pointer (l_pointer)
 		end
 
 	count (a_flags: INTEGER; a_query: BSON; a_skip: INTEGER_64; a_limit: INTEGER_64; a_read_prefs: detachable MONGODB_READ_PREFERENCE; a_error: detachable BSON_ERROR): INTEGER_64

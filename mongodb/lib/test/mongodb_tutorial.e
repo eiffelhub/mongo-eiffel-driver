@@ -12,6 +12,17 @@ class
 
 feature -- Tutorial
 
+	tutorial_all_databases
+		local
+			l_client: MONGODB_CLIENT
+			l_database_names: LIST [STRING]
+		do
+				-- Initialize and create a new mongobd client instance.
+			create l_client.make ("mongodb://127.0.0.1:27017")
+			l_database_names := l_client.get_database_names (Void) 
+			across l_database_names as ic loop print (ic.item + "%N")  end
+		end
+
 	tutorial_api
 		local
 			l_client: MONGODB_CLIENT

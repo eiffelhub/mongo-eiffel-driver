@@ -1,7 +1,7 @@
 note
 	description: "[
 		Object Representing a MongoDB Database Abstraction
-		mongoc_database_t provides access to a MongoDB database. This handle is useful for actions a particular database object. It is not a container for mongoc_collection_t structures.	
+		mongoc_database_t provides access to a MongoDB database. This handle is useful for actions a particular database object. It is not a container for mongoc_collection_t structures.
 	]"
 	date: "$Date$"
 	revision: "$Revision$"
@@ -15,21 +15,19 @@ inherit
 	MEMORY_STRUCTURE
 		rename
 			make as memory_make
-		redefine
-			make_by_pointer
 		end
 
 create
-	make_by_pointer
+	make_own_from_pointer
 
 feature {NONE} -- Initialization
 
-	make_by_pointer (a_ptr: POINTER)
+	make_own_from_pointer (a_ptr: POINTER)
 			-- Initialize current with `a_ptr'.
 		do
-			create managed_pointer.share_from_pointer (a_ptr, structure_size)
+			create managed_pointer.own_from_pointer (a_ptr, structure_size)
 			internal_item := a_ptr
-			shared := True
+			shared := False
 		end
 
 feature {NONE} -- Measurement

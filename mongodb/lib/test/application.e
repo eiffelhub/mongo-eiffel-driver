@@ -28,6 +28,7 @@ feature {NONE} -- Initialization
 			l_tutorial: MONGODB_TUTORIAL
 		do
 			create l_tutorial
+			l_tutorial.tutorial_all_databases
 			l_tutorial.tutorial_api
 			l_tutorial.insert_document
 			l_tutorial.find_documents

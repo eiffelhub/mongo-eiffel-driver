@@ -17,8 +17,6 @@ inherit
 	MEMORY_STRUCTURE
 		rename
 			make as memory_make
-		redefine
-			make_by_pointer
 		end
 
 create
@@ -32,12 +30,12 @@ feature {NONE} -- Initialization
 			make_by_pointer (bson_json_reader_new_from_file (a_filename, error))
 		end
 
-	make_by_pointer (a_ptr: POINTER)
+	make_own_from_pointer (a_ptr: POINTER)
 			-- Initialize current with `a_ptr'.
 		do
-			create managed_pointer.share_from_pointer (a_ptr, structure_size)
+			create managed_pointer.own_from_pointer (a_ptr, structure_size)
 			internal_item := a_ptr
-			shared := True
+			shared := False
 		end
 
 	bson_json_reader_new_from_file (a_file_name: PATH; a_error: BSON_ERROR): POINTER
@@ -61,7 +59,6 @@ feature -- Operations
 			loop
 				l_res := c_bson_json_reader_read (item, a_bson.item, error.item)
 			end
-
 		end
 
 feature -- Error

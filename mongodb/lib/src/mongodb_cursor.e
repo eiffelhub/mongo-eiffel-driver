@@ -17,6 +17,7 @@
 	]"
 	date: "$Date$"
 	revision: "$Revision$"
+	EIS: "name=mongoc_cursor_t", "src=http://mongoc.org/libmongoc/current/mongoc_cursor_t.html", "protocol=uri"
 
 class
 	MONGODB_CURSOR
@@ -26,21 +27,19 @@ inherit
 	MEMORY_STRUCTURE
 		rename
 			make as memory_make
-		redefine
-			make_by_pointer
 		end
 
 create
-	make_by_pointer
+	make_own_from_pointer
 
 feature {NONE} -- Initialization
 
-	make_by_pointer (a_ptr: POINTER)
+	make_own_from_pointer (a_ptr: POINTER)
 			-- Initialize current with `a_ptr'.
 		do
-			create managed_pointer.share_from_pointer (a_ptr, structure_size)
+			create managed_pointer.own_from_pointer (a_ptr, structure_size)
 			internal_item := a_ptr
-			shared := True
+			shared := False
 		end
 
 feature
@@ -56,7 +55,7 @@ feature
 		do
 
 			if {MONGODB_EXTERNALS}.c_mongo_cursor_next (item, $l_pointer) then
-				create Result.make_by_pointer (l_pointer)
+				create Result.make_own_from_pointer (l_pointer)
 			else
 					-- cursor exhausted or error
 			end

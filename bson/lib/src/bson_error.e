@@ -15,12 +15,9 @@ inherit
 			{ANY} managed_pointer
 		undefine
 			default_create
-		redefine
-			make_by_pointer,
-			managed_pointer
 		end
 
-create default_create, make_by_pointer
+create default_create, make_own_from_pointer
 
 feature {NONE} -- Creation
 
@@ -30,12 +27,12 @@ feature {NONE} -- Creation
 			make
 		end
 
-	make_by_pointer (a_ptr: POINTER)
+	make_own_from_pointer (a_ptr: POINTER)
 			-- Initialize current with `a_ptr'.
 		do
-			create managed_pointer.share_from_pointer (a_ptr, structure_size)
+			create managed_pointer.own_from_pointer (a_ptr, structure_size)
 			internal_item := a_ptr
-			shared := True
+			shared := False
 		end
 
 feature -- Access
@@ -58,11 +55,6 @@ feature -- Access
 			create l_string.make_by_pointer (c_message (item))
 			Result := l_string.string
 		end
-
-feature {ANY}
-
-	managed_pointer: MANAGED_POINTER
-			-- <Precursor>
 
 feature {NONE} -- Implementation
 

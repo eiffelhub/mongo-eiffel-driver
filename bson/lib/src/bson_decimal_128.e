@@ -15,13 +15,10 @@ inherit
 			{ANY} managed_pointer
 		undefine
 			default_create
-		redefine
-			make_by_pointer,
-			managed_pointer
 		end
 
 create
-	default_create, with_string
+	default_create, make_with_string, make_own_from_pointer
 
 feature {NONE} -- Creation
 
@@ -31,7 +28,7 @@ feature {NONE} -- Creation
 			make
 		end
 
-	with_string (a_string: STRING)
+	make_with_string (a_string: STRING)
 		require
 			a_string /= Void
 		local
@@ -43,12 +40,12 @@ feature {NONE} -- Creation
 			res := c_bson_decimal128_from_string (c_str.item, item)
 		end
 
-	make_by_pointer (a_ptr: POINTER)
+	make_own_from_pointer (a_ptr: POINTER)
 			-- Initialize current with `a_ptr'.
 		do
-			create managed_pointer.share_from_pointer (a_ptr, structure_size)
+			create managed_pointer.own_from_pointer (a_ptr, structure_size)
 			internal_item := a_ptr
-			shared := True
+			shared := False
 		end
 
 feature -- Access
@@ -64,6 +61,7 @@ feature -- Access
 		end
 
 	to_string: STRING_32
+			-- String representation of BSON Decimal128 Abstraction.
 		local
 			l_string: C_STRING
 		do
@@ -83,11 +81,6 @@ feature -- Change Element
 		do
 			c_set_low (item, a_val)
 		end
-
-feature {ANY}
-
-	managed_pointer: MANAGED_POINTER
-			-- <Precursor>
 
 feature {NONE} -- Implementation
 
@@ -125,7 +118,7 @@ feature {NONE} -- Implementation
 		alias
 			"[
 				bson_decimal128_to_string ((const bson_decimal128_t *)$a_dec, (char *)$a_str);
-				printf("%s\n", $a_str);
+				//printf("%s\n", $a_str);
 			]"
 		end
 

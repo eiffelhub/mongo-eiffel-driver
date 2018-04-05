@@ -16,12 +16,10 @@ inherit
 	MEMORY_STRUCTURE
 		rename
 			make as memory_make
-		redefine
-			make_by_pointer
 		end
 
 create
-	make, make_empty, make_by_pointer, make_from_json
+	make, make_empty, make_own_from_pointer, make_from_json
 
 feature {NONE}-- Initialization
 
@@ -42,12 +40,12 @@ feature {NONE}-- Initialization
 			c_bson_init (item)
 		end
 
-	make_by_pointer (a_ptr: POINTER)
+	make_own_from_pointer (a_ptr: POINTER)
 			-- Initialize current with `a_ptr'.
 		do
-			create managed_pointer.share_from_pointer (a_ptr, structure_size)
+			create managed_pointer.own_from_pointer (a_ptr, structure_size)
 			internal_item := a_ptr
-			shared := True
+			shared := False
 		end
 
 	make_from_json (a_data: STRING_8)
@@ -59,7 +57,7 @@ feature {NONE}-- Initialization
 			create l_error
 			create l_data.make (a_data)
 			l_pointer := c_bson_new_from_json (l_data.item, l_data.count, l_error.item)
-			make_by_pointer (l_pointer)
+			make_own_from_pointer (l_pointer)
 		end
 
 feature -- Access
@@ -72,6 +70,8 @@ feature -- Access
 feature -- Operations
 
 	bson_append_utf8 (a_key: STRING_32; a_value: STRING_32)
+		note
+			EIS:"name=bson_append_utf8", "src=http://mongoc.org/libbson/current/bson_append_utf8.html", "protocol=uri"
 		local
 			c_key: C_STRING
 			c_value: C_STRING
@@ -152,16 +152,9 @@ feature -- Operations
 			l_res := c_bson_append_binary (item, l_key.item, l_key.count, a_type, l_mgr.item, l_mgr.count)
 		end
 
-	bson_append_undefined (a_key: STRING_32)
-		local
-			c_key: C_STRING
-			l_res: BOOLEAN
-		do
-			create c_key.make (a_key)
-			l_res := c_bson_append_undefined (item, c_key.item, c_key.count)
-		end
-
 	bson_append_null (a_key: STRING_32)
+		note
+			EIS: "name=bson_append_null", "src=http://mongoc.org/libbson/current/bson_append_null.html", "protocol=uri"
 		local
 			c_key: C_STRING
 			l_res: BOOLEAN
@@ -197,7 +190,9 @@ feature -- Operations
 			l_res := c_bson_append_timestamp (item, c_key.item, c_key.count, a_timestamp, a_increment)
 		end
 
-	bson_append_regex (a_key: STRING_32; a_regex: STRING_32; a_options: STRING_32)
+	bson_append_regex (a_key: STRING_32; a_regex: STRING_8; a_options: STRING_32)
+		note
+			EIS: "name=bson_append_regex", "src=http://mongoc.org/libbson/current/bson_append_regex.html", "protocol=uri"
 		local
 			c_key: C_STRING
 			l_res: BOOLEAN
@@ -208,28 +203,6 @@ feature -- Operations
 			create c_options.make (a_options)
 			create c_key.make (a_key)
 			l_res := c_bson_append_regex (item, c_key.item, c_key.count, c_regex.item, c_options.item)
-		end
-
-	bson_append_dbpointer (a_key: STRING_32; a_collection: STRING_32; a_oid: BSON_OID)
-		local
-			c_key: C_STRING
-			l_res: BOOLEAN
-			c_collection: C_STRING
-		do
-			create c_collection.make (a_collection)
-			create c_key.make (a_key)
-			l_res := c_bson_append_dbpointer (item, c_key.item, c_key.count, c_collection.item, a_oid.item)
-		end
-
-	bson_append_symbol (a_key: STRING_32; a_value: STRING_32)
-		local
-			c_key: C_STRING
-			c_value: C_STRING
-			l_res: BOOLEAN
-		do
-			create c_value.make (a_value)
-			create c_key.make (a_key)
-			l_res := c_bson_append_symbol (item, c_key.item, c_key.count, c_value.item, c_value.count)
 		end
 
 	bson_append_decimal128 (a_key: STRING_32; a_dec: BSON_DECIMAL_128)
@@ -247,9 +220,53 @@ feature -- Operations
 			Result := ""
 		end
 
+	bson_append_date_time (a_key: STRING_32; a_value: INTEGER_64)
+		note
+			EIS: "name=bson_append_date_time", "src=http://mongoc.org/libbson/current/bson_append_date_time.html", "protocol=uri"
+		local
+			c_key: C_STRING
+			l_res: BOOLEAN
+		do
+			create c_key.make (a_key)
+			l_res := c_bson_append_date_time (item, c_key.item, c_key.count, a_value)
+		end
+
+	bson_append_iter (a_key: detachable STRING_32; a_iter: BSON_ITERATOR)
+		note
+			EIS: "name=bson_append_iter", "src=http://mongoc.org/libbson/current/bson_append_iter.html", "protocol=uri"
+		local
+			c_key: C_STRING
+			l_res: BOOLEAN
+			l_key: POINTER
+			l_count: INTEGER
+		do
+			if attached a_key then
+				create c_key.make (a_key)
+				l_key := c_key.item
+				l_count := c_key.count
+			else
+				l_count := -1
+			end
+			l_res := c_bson_append_iter (item, l_key, l_count, a_iter.item)
+		end
+
+	bson_append_now_utc	(a_key: STRING_32)
+		note
+			EIS: "name=bson_append_now_utc", "src=http://mongoc.org/libbson/current/bson_append_now_utc.html", "protocol=uri"
+		local
+			c_key: C_STRING
+			l_res: BOOLEAN 
+		do
+			create c_key.make (a_key)
+			l_res := c_bson_append_now_utc (item, c_key.item, c_key.count)
+
+		end
+
 feature -- Append Document
 
 	bson_append_document (a_key: STRING_32; a_document: BSON)
+		note
+			EIS: "name=bson_append_document", "src=http://mongoc.org/libbson/current/bson_append_document.html", "protocol=uri"
 		local
 			c_key: C_STRING
 			l_res: BOOLEAN
@@ -298,7 +315,7 @@ feature -- Operations
 
 	bson_copy: BSON
 		do
-			create Result.make_by_pointer (c_bson_copy (item))
+			create Result.make_own_from_pointer (c_bson_copy (item))
 		end
 
 	bson_copy_to (a_dst: BSON)
@@ -576,14 +593,6 @@ feature {NONE} -- C externals
 			"return bson_append_binary ((bson_t *)$a_bson,(const char *)$a_key,(int)$a_key_length, (bson_subtype_t)$a_subtype, (const uint8_t *)$a_binary, (uint32_t)$a_length);"
 		end
 
-	c_bson_append_undefined (a_bson: POINTER; a_key: POINTER; a_key_length: INTEGER): BOOLEAN
-		obsolete "This type is deprecated in the spec and should not be used for new code. However, it is provided for those needing to interact with legacy systems."
-		external
-			"C inline use <bson.h>"
-		alias
-			"return bson_append_undefined ((bson_t *)$a_bson, (const char *)$a_key, (int) $a_key_length);"
-		end
-
 	c_bson_append_null (a_bson: POINTER; a_key: POINTER; a_key_length: INTEGER): BOOLEAN
 		external
 			"C inline use <bson.h>"
@@ -619,13 +628,6 @@ feature {NONE} -- C externals
 			"return bson_append_regex ((bson_t *)$a_bson, (const char *)$a_key, (int)$a_key_length, (const char *)$a_regex, (const char *)$a_options);"
 		end
 
-	c_bson_append_dbpointer (a_bson: POINTER; a_key: POINTER; a_key_length: INTEGER; a_collection: POINTER; a_oid: POINTER): BOOLEAN
-		obsolete "This datum type is deprecated in the BSON spec and should not be used in new code."
-		external
-			"C inline use <bson.h>"
-		alias
-			"return bson_append_dbpointer ((bson_t *)$a_bson, (const char *)$a_key, (int) $a_key_length, (const char *)$a_collection, (const bson_oid_t *)$a_oid);"
-		end
 
 	c_bson_append_symbol (a_bson: POINTER; a_key: POINTER; a_key_length: INTEGER; a_value: POINTER; a_length: INTEGER): BOOLEAN
 		obsolete "This BSON type is deprecated and should not be used in new code."
@@ -636,7 +638,6 @@ feature {NONE} -- C externals
 		end
 
 	c_bson_append_decimal128 (a_bson: POINTER; a_key: POINTER; a_key_length: INTEGER; a_value: POINTER): BOOLEAN
-		obsolete "This BSON type is deprecated and should not be used in new code."
 		external
 			"C inline use <bson.h>"
 		alias
@@ -703,4 +704,31 @@ feature {NONE} -- C externals
 		alias
 			"return bson_new_from_json ((const uint8_t *)$a_data, (ssize_t)$a_len, (bson_error_t *)$a_error);"
 		end
+
+	c_bson_append_date_time (a_bson: POINTER; a_key: POINTER; a_length: INTEGER; a_value: INTEGER_64): BOOLEAN
+		external "C inline use <bson.h>"
+		alias
+			"[
+				return (EIF_BOOLEAN) bson_append_date_time ((bson_t *)$a_bson, (const char *)$a_key, (int)$a_length, (int64_t)$a_value);
+			]"
+		end
+
+	c_bson_append_iter (a_bson: POINTER; a_key: POINTER; a_length: INTEGER; a_iter: POINTER): BOOLEAN
+		external "C inline use <bson.h>"
+		alias
+			"[
+				return (EIF_BOOLEAN) bson_append_iter ((bson_t *)$a_bson, (const char *)$a_key, (int) $a_length, (const bson_iter_t *)$a_iter);
+			]"
+		end
+
+	c_bson_append_now_utc (a_bson: POINTER; a_key: POINTER; a_length: INTEGER): BOOLEAN
+		external "C inline use <bson.h>"
+		alias
+			"[
+				return (EIF_BOOLEAN) bson_append_now_utc ((bson_t *)$a_bson, (const char *)$a_key, (int)$a_length);
+			]"
+		end
+
+
+
 end
