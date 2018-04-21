@@ -30,7 +30,7 @@ feature {NONE} -- Initialization
 			-- Initialize object.
 		do
 				-- Initialize
-			create id.with_string (a_id)
+			create id.make_with_string (a_id)
 			name := a_name
 			description := a_description
 			image := a_image

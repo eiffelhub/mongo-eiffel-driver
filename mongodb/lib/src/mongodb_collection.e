@@ -1,4 +1,4 @@
-note
+﻿note
 	description: "[
 		Object representing a mongoc_collection_t structure.
 		It provides access to a MongoDB collection. This handle is useful for actions for most CRUD operations, I.e. insert, update, delete, find, etc.
@@ -177,6 +177,25 @@ feature -- Status Report
 			Result := last_execution
 		end
 
+feature -- Drop
+
+	drop_with_opts	(a_opts: detachable BSON)
+			-- Drop the current collection, including all indexes associated with the collection.
+			-- If no write concern is provided in a_opts, the collection's write concern is used.
+		note
+			EIS: "name=mongoc_collection_drop_with_opts","src=http://mongoc.org/libmongoc/current/mongoc_collection_drop_with_opts.html","protocol=uri"
+		local
+			l_opts: POINTER
+			l_error: BSON_ERROR
+			l_res: BOOLEAN
+		do
+			if attached a_opts then
+				l_opts := l_opts.item
+			end
+			create l_error.default_create
+			l_res := {MONGODB_EXTERNALS}.c_mongoc_collection_drop_with_opts (item, l_opts, l_error.item)
+		end
+
 feature {NONE} -- Implementation
 
 	last_execution: BOOLEAN
@@ -196,6 +215,5 @@ feature {NONE} -- Measurement
 		alias
 			"return sizeof(mongoc_collection_t *);"
 		end
-
 
 end

@@ -22,13 +22,13 @@ feature -- Access
 	mongodb_database: MONGODB_DATABASE
 			-- Get a handle on the database.
 		do
-			 Result := mongodb_client.get_database (database_name)
+			 Result := mongodb_client.database (database_name)
 		end
 
 	mongodb_collection: MONGODB_COLLECTION
 			-- Get a handle on the collection
 		do
-			Result := mongodb_client.get_collection (database_name, collection_name)
+			Result := mongodb_client.collection (database_name, collection_name)
 		end
 
 	app_name: STRING = "books_restapi"
@@ -175,7 +175,7 @@ feature {NONE} -- Implementation
 			-- and set the error `a_error' to error.
 		do
 			if mongodb_collection.has_error then
-				create error.make_by_pointer (a_error.item)
+				create error.make_own_from_pointer (a_error.item)
 			end
 		end
 end

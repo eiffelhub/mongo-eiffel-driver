@@ -12,6 +12,117 @@ class
 
 feature -- Tutorial
 
+	test_server_description
+		local
+			l_client: MONGODB_CLIENT
+			l_servers: LIST [MONGODB_SERVER_DESCRIPTION]
+		do
+				-- Initialize and create a new mongobd client instance.
+			create l_client.make ("mongodb://127.0.0.1:27017")
+
+			l_servers := l_client.server_descriptions
+			across l_servers as ic  loop
+				print ("%Ndescription_id: " + ic.item.description_id.out)
+				print ("%Ndescription_type: " + ic.item.description_type)
+				print ("%Nis_master: " + ic.item.is_master.bson_as_json)
+				print ("%Nround_trip_time: " + ic.item.round_trip_time.out)
+			end
+
+		end
+
+	test_create_read_concern
+		local
+			l_read_concern: MONGODB_READ_CONCERN
+		do
+				-- create a default read concern
+			create l_read_concern.make
+			print ("%NIs Default: " + l_read_concern.is_default.out)
+			if attached l_read_concern.level as l_level then
+				print ("%N Level: " + l_level)
+			end
+				-- set level to local
+			l_read_concern.set_level ({MONGODB_EXTERNALS}.mongoc_read_concern_level_local)
+			if attached l_read_concern.level as l_level then
+				print ("%N Level: " + l_level)
+			end
+
+				-- set level to linearizable
+			l_read_concern.set_level ({MONGODB_EXTERNALS}.mongoc_read_concern_level_linearizable)
+				-- now it's not default.
+			print ("%NIs Default: " + l_read_concern.is_default.out)
+
+		end
+
+	test_read_prefernces
+		local
+			l_client: MONGODB_CLIENT
+			l_read_preference: MONGODB_READ_PREFERENCE
+		do
+				-- Initialize and create a new mongobd client instance.
+			create l_client.make ("mongodb://127.0.0.1:27017")
+
+			l_read_preference := l_client.read_preferences
+			print ("%NMode Value: " + l_read_preference.mode.value.out)
+			print ("%NTags:" + l_read_preference.tags.bson_as_json)
+		end
+
+
+	test_read_concern
+		local
+			l_client: MONGODB_CLIENT
+			l_read_concern: MONGODB_READ_CONCERN
+		do
+				-- Initialize and create a new mongobd client instance.
+			create l_client.make ("mongodb://127.0.0.1:27017")
+
+			l_read_concern := l_client.read_concern
+
+			print ("%NIs Default: " + l_read_concern.is_default.out)
+			if attached l_read_concern.level as l_level then
+				print ("%N Level: " + l_level)
+			end
+		end
+
+	tutorial_find_databases_with_opts
+		local
+			l_client: MONGODB_CLIENT
+			l_db_cursor: MONGODB_CURSOR
+			l_end: BOOLEAN
+		do
+				-- Initialize and create a new mongobd client instance.
+			create l_client.make ("mongodb://127.0.0.1:27017")
+
+			l_db_cursor := l_client.find_databases_with_opts (Void)
+			from
+			until
+				l_end
+			loop
+				if attached l_db_cursor.next as l_db_item then
+					print (l_db_item.bson_as_json)
+					io.put_new_line
+				else
+					l_end := True
+				end
+			end
+		end
+
+	tutorial_all_collections_in_a_database
+		local
+			l_client: MONGODB_CLIENT
+			l_database: MONGODB_DATABASE
+			l_collection: MONGODB_COLLECTION
+		do
+				-- Initialize and create a new mongobd client instance.
+			create l_client.make ("mongodb://127.0.0.1:27017")
+			l_database := l_client.database ("db_name")
+			across l_database.collection_names (VOID) as ic loop print (ic.item + "%N")  end
+
+				-- create a new collection USING MONGODB_DATABASE
+			l_collection := l_database.create_collection ("my_new_collection", Void)
+			across l_database.collection_names (VOID) as ic loop print (ic.item + "%N")  end
+		end
+
+
 	tutorial_all_databases
 		local
 			l_client: MONGODB_CLIENT
@@ -19,7 +130,7 @@ feature -- Tutorial
 		do
 				-- Initialize and create a new mongobd client instance.
 			create l_client.make ("mongodb://127.0.0.1:27017")
-			l_database_names := l_client.get_database_names (Void) 
+			l_database_names := l_client.database_names (Void)
 			across l_database_names as ic loop print (ic.item + "%N")  end
 		end
 
@@ -41,8 +152,8 @@ feature -- Tutorial
 		    l_client.set_appname ("connect_example")
 
 		    	-- Get a handle on the database "db_name" and collection "coll_name"
-			l_database := l_client.get_database ("db_name")
-			l_collection := l_client.get_collection ("db_name", "coll_name")
+			l_database := l_client.database ("db_name")
+			l_collection := l_client.collection ("db_name", "coll_name")
 
 				-- Do work. This example pings the database, prints the result as JSON and
 				-- performs an insert
@@ -152,11 +263,11 @@ feature -- Crud
 			l_error: BSON_ERROR
 		do
 			create l_client.make ("mongodb://localhost:27017/?appname=insert-example")
-			l_collection := l_client.get_collection ("mydb", "mycoll")
+			l_collection := l_client.collection ("mydb", "mycoll")
 			create l_doc.make
 			create l_oid.make (Void)
 			l_doc.bson_append_oid ("_id", l_oid)
-			l_doc.bson_append_utf8 ("hello", "eiffel")
+			l_doc.bson_append_utf8 ("hello", "new eiffel")
 
 			create l_error
 			l_collection.insert_one (l_doc, Void, Void, l_error)
@@ -174,7 +285,7 @@ feature -- Crud
 			l_after: BOOLEAN
 		do
 			create l_client.make ("mongodb://localhost:27017/?appname=find-example")
-			l_collection := l_client.get_collection ("mydb", "mycoll")
+			l_collection := l_client.collection ("mydb", "mycoll")
 			create l_query.make
 			l_cursor := l_collection.find_with_opts (l_query, Void, Void)
 
@@ -204,7 +315,7 @@ feature -- Crud
 			l_after: BOOLEAN
 		do
 			create l_client.make ("mongodb://localhost:27017/?appname=find-example")
-			l_collection := l_client.get_collection ("mydb", "mycoll")
+			l_collection := l_client.collection ("mydb", "mycoll")
 			create l_query.make
 			l_query.bson_append_utf8 ("hello", "eiffel")
 			l_cursor := l_collection.find_with_opts (l_query, Void, Void)
@@ -237,7 +348,7 @@ feature -- Crud
 			l_subdoc: BSON
 		do
 			create l_client.make ("mongodb://localhost:27017/?appname=update-example")
-			l_collection := l_client.get_collection ("mydb", "mycoll")
+			l_collection := l_client.collection ("mydb", "mycoll")
 			create l_oid.make (Void)
 			create l_doc.make
 			l_doc.bson_append_oid ("_id", l_oid)
@@ -274,7 +385,7 @@ feature -- Crud
 			l_error: BSON_ERROR
 		do
 			create l_client.make ("mongodb://localhost:27017/?appname=delete-example")
-			l_collection := l_client.get_collection ("test", "test")
+			l_collection := l_client.collection ("test", "test")
 			create l_oid.make (Void)
 			create l_doc.make
 			l_doc.bson_append_oid ("_id", l_oid)
@@ -305,7 +416,7 @@ feature -- Crud
 			l_count: INTEGER_64
 		do
 			create l_client.make ("mongodb://localhost:27017/?appname=delete-example")
-			l_collection := l_client.get_collection ("mydb", "mycoll")
+			l_collection := l_client.collection ("mydb", "mycoll")
 			create l_doc.make
 			l_doc.bson_append_utf8 ("hello", "world")
 
