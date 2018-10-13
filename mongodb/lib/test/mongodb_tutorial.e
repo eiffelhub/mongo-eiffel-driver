@@ -160,8 +160,8 @@ feature -- Tutorial
 
 			create l_command.make
 			l_command.bson_append_integer_32 ("ping", 1)
-			create l_reply.make_empty
-			create l_error
+			create l_reply.make
+			create l_error.make
 			l_client.command_simple ("db_name", l_command, Void, l_reply, l_error)
 
 			print ("%NOperation: l_client.command_simple " + l_error.message)
@@ -170,7 +170,7 @@ feature -- Tutorial
 
 			create l_insert.make
 			l_insert.bson_append_utf8 ("hello", "world")
-			create l_error
+			create l_error.make
 
 			l_collection.insert_one (l_insert, Void, Void, l_error)
 
@@ -226,9 +226,9 @@ feature -- Tutorial
 			create l_command.make
 			l_command.bson_append_integer_32 ("ping", 1)
 
-			create l_reply.make_empty
+			create l_reply.make
 			create l_admin.make ("admin")
-			create l_error
+			create l_error.make
 			l_retval := {MONGODB_EXTERNALS}.c_mongoc_client_command_simple (l_client, l_admin.item, l_command.item, default_pointer, l_reply.item, l_error.item)
 
 			if not l_retval then
@@ -240,7 +240,7 @@ feature -- Tutorial
 
 			create l_insert.make
 			l_insert.bson_append_utf8 ("hello", "world")
-			create l_error
+			create l_error.make
 			create l_opts.make
 			l_retval := {MONGODB_EXTERNALS}.c_mongoc_collection_insert_one (l_collection, l_insert.item, l_opts.item, default_pointer, l_error.item)
 
@@ -269,7 +269,7 @@ feature -- Crud
 			l_doc.bson_append_oid ("_id", l_oid)
 			l_doc.bson_append_utf8 ("hello", "new eiffel")
 
-			create l_error
+			create l_error.make
 			l_collection.insert_one (l_doc, Void, Void, l_error)
 			print ("Last Operation l_collection.insert_one: " + l_error.message)
 		end
@@ -354,7 +354,7 @@ feature -- Crud
 			l_doc.bson_append_oid ("_id", l_oid)
 			l_doc.bson_append_utf8 ("key", "old_value")
 
-			create l_error.default_create
+			create l_error.make
 			l_collection.insert_one (l_doc,Void, Void, l_error)
 
 			create l_query.make
@@ -366,7 +366,7 @@ feature -- Crud
 			create l_update.make
 			l_update.bson_append_document ("$set", l_subdoc)
 
-			create l_error.default_create
+			create l_error.make
 
 			l_collection.update_one (l_query, l_update, Void, Void, l_error)
 
@@ -391,14 +391,14 @@ feature -- Crud
 			l_doc.bson_append_oid ("_id", l_oid)
 			l_doc.bson_append_utf8 ("hello", "world")
 
-			create l_error
+			create l_error.make
 			l_collection.insert_one (l_doc, Void, Void, l_error)
 			print ("Last Operation : l_collection.insert_one: " + l_error.message)
 
 
 			create l_doc.make
 			l_doc.bson_append_oid ("_id", l_oid)
-			create l_error
+			create l_error.make
 			l_collection.delete_one (l_doc, Void, Void, l_error)
 			print ("Last Operation : l_collection.delete_one: " + l_error.message)
 
@@ -420,7 +420,7 @@ feature -- Crud
 			create l_doc.make
 			l_doc.bson_append_utf8 ("hello", "world")
 
-			create l_error
+			create l_error.make
 			l_count := l_collection.count ((create {MONGODB_QUERY_FLAG}).mongoc_query_none, l_doc, 0, 0, Void, l_error)
 			if l_count < 0 then
 				print ("Error message: " + l_error.message)

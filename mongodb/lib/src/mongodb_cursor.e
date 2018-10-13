@@ -24,25 +24,24 @@ class
 
 inherit
 
-	MEMORY_STRUCTURE
+	MONGODB_WRAPPER_BASE
 		rename
-			make as memory_make
+			make as make_base
 		end
 
 create
-	make_own_from_pointer
+	make
 
-feature {NONE} -- Initialization
+feature -- Creation
 
-	make_own_from_pointer (a_ptr: POINTER)
-			-- Initialize current with `a_ptr'.
+	make (a_pointer: POINTER)
+
 		do
-			create managed_pointer.own_from_pointer (a_ptr, structure_size)
-			internal_item := a_ptr
-			shared := False
+			make_by_pointer (a_pointer)
 		end
 
-feature
+
+feature -- Iterator
 
 	next: detachable BSON
 			-- 'a_bson': A location for a bson_t.
@@ -55,9 +54,19 @@ feature
 		do
 
 			if {MONGODB_EXTERNALS}.c_mongo_cursor_next (item, $l_pointer) then
-				create Result.make_own_from_pointer (l_pointer)
+				create Result.make_by_pointer (l_pointer)
 			else
 					-- cursor exhausted or error
+			end
+		end
+
+feature -- Disponse
+
+	dispose
+			-- <Precursor>
+		do
+			if shared then
+				c_mongoc_cursor_destroy (item)
 			end
 		end
 
@@ -74,6 +83,14 @@ feature {NONE} -- Measurement
 			"C inline use <mongoc.h>"
 		alias
 			"return sizeof(mongoc_cursor_t *);"
+		end
+
+
+	c_mongoc_cursor_destroy (a_cursor: POINTER)
+		external
+			"C inline use <mongoc.h>"
+		alias
+			"mongoc_cursor_destroy ((mongoc_cursor_t *)$a_cursor);;"
 		end
 
 end

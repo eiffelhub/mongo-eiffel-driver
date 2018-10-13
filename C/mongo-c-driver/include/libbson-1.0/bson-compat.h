@@ -39,12 +39,13 @@
 
 
 #ifdef BSON_OS_WIN32
-#if defined(_WIN32_WINNT) && (_WIN32_WINNT < 0x0600)
+/*#if defined(_WIN32_WINNT) && (_WIN32_WINNT < 0x0600)
 #undef _WIN32_WINNT
 #endif
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0600
 #endif
+*/
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
@@ -80,14 +81,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <stdint.h>
 
 
 BSON_BEGIN_DECLS
 
 
 #ifdef _MSC_VER
-#include <time.h>
-#include "bson-stdint-win32.h"
 #ifndef __cplusplus
 /* benign redefinition of type */
 #pragma warning(disable : 4142)
@@ -131,7 +131,6 @@ typedef SSIZE_T ssize_t;
 #define PRIu64 "I64u"
 #endif
 #else
-#include "bson-stdint.h"
 #include <inttypes.h>
 #endif
 

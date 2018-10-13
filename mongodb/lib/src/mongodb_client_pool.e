@@ -8,23 +8,13 @@ class
 
 inherit
 
-	MEMORY_STRUCTURE
-		rename
-			make as memory_make
-		end
+	MONGODB_WRAPPER_BASE
 
 create
-	 make_own_from_pointer, make_from_uri
+	 make_by_pointer, make_from_uri
 
 feature {NONE} -- Initialization
 
-	make_own_from_pointer (a_ptr: POINTER)
-			-- Initialize current with `a_ptr'.
-		do
-			create managed_pointer.own_from_pointer (a_ptr, structure_size)
-			internal_item := a_ptr
-			shared := False
-		end
 
 	make_from_uri (a_uri: MONGODB_URI)
 			-- create a new pool using the uri `a_uri'.
@@ -32,7 +22,17 @@ feature {NONE} -- Initialization
 			l_ptr: POINTER
 		do
 			l_ptr := {MONGODB_EXTERNALS}.c_mongoc_client_pool_new (a_uri.item)
-			make_own_from_pointer (l_ptr)
+			make_by_pointer (l_ptr)
+		end
+
+feature -- Removal
+
+	dispose
+			-- <Precursor>
+		do
+			if shared then
+				c_mongoc_client_pool_destroy (item)
+			end
 		end
 
 feature -- Access
@@ -47,7 +47,7 @@ feature -- Access
 			EIS: "name=mongoc_client_pool_pop", "src=http://mongoc.org/libmongoc/current/mongoc_client_pool_pop.html", "protocol=uri"
 		do
 			has_pop := True
-			create Result.make_own_from_pointer ({MONGODB_EXTERNALS}.c_mongoc_client_pool_pop (item))
+			create Result.make_by_pointer ({MONGODB_EXTERNALS}.c_mongoc_client_pool_pop (item))
 		end
 
 	try_pop: detachable MONGODB_CLIENT
@@ -60,7 +60,7 @@ feature -- Access
 			has_pop := True
 			l_ptr := {MONGODB_EXTERNALS}.c_mongoc_client_pool_try_pop (item)
 			if l_ptr /= default_pointer  then
-				create Result.make_own_from_pointer (l_ptr)
+				create Result.make_by_pointer (l_ptr)
 			end
 		end
 
@@ -121,6 +121,11 @@ feature {NONE} -- Measurement
 			"return sizeof(mongoc_client_pool_t *);"
 		end
 
-
+	c_mongoc_client_pool_destroy (a_pool: POINTER)
+		external
+			"C inline use <mongoc.h>"
+		alias
+			"mongoc_client_pool_destroy ((mongoc_client_pool_t *)$a_pool);"
+		end
 
 end

@@ -9,24 +9,15 @@ class
 
 inherit
 
-	MEMORY_STRUCTURE
+	MONGODB_WRAPPER_BASE
 		rename
 			make as memory_make
 		end
 
 create
-	make, make_own_from_pointer
+	make, make_by_pointer
 
 feature {NONE} -- Initialization
-
-	make_own_from_pointer (a_ptr: POINTER)
-			-- Initialize current with `a_ptr'.
-		do
-			create managed_pointer.own_from_pointer (a_ptr, structure_size)
-			internal_item := a_ptr
-			shared := False
-		end
-
 	make
 		do
 			memory_make
@@ -37,9 +28,19 @@ feature {NONE} -- Initialization
 		note
 			EIS: "name=mongoc_session_opts_new", "src=http://mongoc.org/libmongoc/current/mongoc_session_opts_new.html", "protocol=uri"
 		do
-			make_own_from_pointer({MONGODB_EXTERNALS}.c_mongoc_session_opts_new)
+			make_by_pointer ({MONGODB_EXTERNALS}.c_mongoc_session_opts_new)
 		end
 
+
+feature -- Removal
+
+	dispose
+			-- <Precursor>
+		do
+			if shared then
+				c_mongoc_session_opts_destroy (item)
+			end
+		end
 feature -- Access
 
 	is_session_causal_consistency: BOOLEAN
@@ -67,7 +68,7 @@ feature -- Change Element
 		note
 			EIS: "name=mongoc_session_opts_clone", "src=http://mongoc.org/libmongoc/current/mongoc_session_opts_clone.html", "protocol=uri"
 		do
-			create Result.make_own_from_pointer ({MONGODB_EXTERNALS}.c_mongoc_session_opts_clone (item))
+			create Result.make_by_pointer ({MONGODB_EXTERNALS}.c_mongoc_session_opts_clone (item))
 		end
 
 feature {NONE} -- Measurement
@@ -84,5 +85,13 @@ feature {NONE} -- Measurement
 		alias
 			"return sizeof(mongoc_session_opt_t *);"
 		end
+
+	c_mongoc_session_opts_destroy (a_opts: POINTER)
+		external
+			"C inline use <mongoc.h>"
+		alias
+			"mongoc_session_opts_destroy ((mongoc_session_opt_t *)$a_opts);"
+		end
+
 
 end

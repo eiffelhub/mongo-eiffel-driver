@@ -34,7 +34,7 @@ feature {NONE} -- Initialization
 			l_doc.bson_append_oid ("_id", l_oid)
 			l_doc.bson_append_utf8 ("hello", "new eiffel")
 
-			create l_error
+			create l_error.make
 			l_collection.insert_one (l_doc, Void, Void, l_error)
 		end
 

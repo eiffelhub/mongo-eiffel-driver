@@ -79,7 +79,7 @@ feature {NONE} -- Initialization
 		local
 			l_dec: BSON_DECIMAL_128
 		do
-			create l_dec.default_create
+			create l_dec.make
 			l_dec.set_high (0x302a000000000000)
 			l_dec.set_low (0x00000000075aef40)
 			print (l_dec.to_string)
@@ -92,7 +92,7 @@ feature {NONE} -- Initialization
 			print (l_dec.low)
 --			3457705539973125938
 --			-2413264399770406926
-			create l_dec.default_create
+			create l_dec.make
 			l_dec.set_high (3457705539973125938)
 			l_dec.set_low (-2413264399770406926)
 			io.put_new_line
@@ -104,7 +104,7 @@ feature {NONE} -- Initialization
 			l_bson: BSON
 		do
 				-- This creates an empty document. In JSON, this would be the same as {}.
-			create l_bson.make_empty
+			create l_bson.make
 			print (l_bson.bson_as_json)
 		end
 
@@ -346,7 +346,7 @@ feature {NONE} -- Initialization
    			l_bson_reader.bson_json_reader_read (l_bson)
 
    				-- Iterator
-   			create l_iter
+   			create l_iter.make
    			l_iter.bson_iter_init (l_bson)
    			from
    				l_bool := l_iter.bson_iter_next

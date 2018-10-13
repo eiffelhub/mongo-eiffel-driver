@@ -12,13 +12,13 @@ class
 
 inherit
 
-	MEMORY_STRUCTURE
+	MONGODB_WRAPPER_BASE
 		rename
 			make as memory_make
 		end
 
 create
-	make, make_own_from_pointer
+	make, make_by_pointer
 
 feature {NONE} -- Initialization
 
@@ -27,13 +27,16 @@ feature {NONE} -- Initialization
 			memory_make
 		end
 
-	make_own_from_pointer (a_ptr: POINTER)
-			-- Initialize current with `a_ptr'.
+feature -- Removal
+
+	dispose
+			-- <Precursor>
 		do
-			create managed_pointer.own_from_pointer (a_ptr, structure_size)
-			internal_item := a_ptr
-			shared := False
+			if shared then
+				c_mongoc_collection_destroy (item)
+			end
 		end
+
 
 feature -- Access
 
@@ -56,7 +59,7 @@ feature -- Access
 				l_read_prefs := a_read_prefs.item
 			end
 			l_pointer := {MONGODB_EXTERNALS}.c_mongoc_collection_find_with_opts (item, a_filter.item, l_opts, l_read_prefs)
-			create Result.make_own_from_pointer (l_pointer)
+			create Result.make (l_pointer)
 		end
 
 	count (a_flags: INTEGER; a_query: BSON; a_skip: INTEGER_64; a_limit: INTEGER_64; a_read_prefs: detachable MONGODB_READ_PREFERENCE; a_error: detachable BSON_ERROR): INTEGER_64
@@ -114,6 +117,48 @@ feature -- Command
 				l_error := a_error.item
 			end
 			last_execution := {MONGODB_EXTERNALS}.c_mongoc_collection_insert_one (item, a_document.item, l_opts, l_reply, l_error)
+		end
+
+	insert_many (a_documents: LIST [BSON]; a_opts: detachable BSON; a_reply: detachable BSON; a_error: detachable BSON_ERROR)
+			--documents: An array of pointers to bson_t.
+			--opts may be NULL or a BSON document with additional command options:
+			--reply: Optional. An uninitialized bson_t populated with the insert result, or NULL.
+			--error: An optional location for a bson_error_t or NULL.		
+		note
+			EIS: "name=mongoc_collection_insert_one", "src=http://mongoc.org/libmongoc/current/mongoc_collection_insert_many.html", "protocol=uri"
+		local
+			l_opts: POINTER
+			l_reply: POINTER
+			l_error: POINTER
+			l_pos: INTEGER
+			l_array: SPECIAL [MANAGED_POINTER]
+			l_item: MANAGED_POINTER
+			l_pointers: MANAGED_POINTER
+			l_bson: BSON
+		do
+			if attached a_opts then
+				l_opts := a_opts.item
+			end
+			if attached a_reply then
+				l_reply := a_reply.item
+			end
+			if attached a_error then
+				l_error := a_error.item
+			end
+
+			create l_item.make (a_documents.count*8)
+			from
+				a_documents.start
+				l_pos := 0
+			until
+				a_documents.after
+			loop
+				l_item.put_pointer (a_documents.item.item, l_pos)
+				a_documents.forth
+				l_pos := l_pos + 8
+			end
+
+			last_execution := {MONGODB_EXTERNALS}.c_mongoc_collection_insert_many (item, l_item.item, a_documents.count , l_opts, l_reply, l_error)
 		end
 
 	update_one (a_selector: BSON; a_update: BSON; a_opts: detachable BSON; a_reply: detachable BSON; a_error: detachable BSON_ERROR)
@@ -192,7 +237,7 @@ feature -- Drop
 			if attached a_opts then
 				l_opts := l_opts.item
 			end
-			create l_error.default_create
+			create l_error.make
 			l_res := {MONGODB_EXTERNALS}.c_mongoc_collection_drop_with_opts (item, l_opts, l_error.item)
 		end
 
@@ -214,6 +259,13 @@ feature {NONE} -- Measurement
 			"C inline use <mongoc.h>"
 		alias
 			"return sizeof(mongoc_collection_t *);"
+		end
+
+	c_mongoc_collection_destroy (a_collection: POINTER)
+		external
+			"C inline use <mongoc.h>"
+		alias
+			"mongoc_collection_destroy ((mongoc_collection_t *)$a_collection);"
 		end
 
 end

@@ -11,13 +11,10 @@ class
 
 inherit
 
-	MEMORY_STRUCTURE
-		rename
-			make as memory_make
-		end
+	BSON_WRAPPER_BASE
 
 create
-	make, make_own_from_pointer
+	make, make_by_pointer
 
 feature {NONE} -- Initialization
 
@@ -26,19 +23,21 @@ feature {NONE} -- Initialization
 			memory_make
 		end
 
-	make_own_from_pointer (a_ptr: POINTER)
-			-- Initialize current with `a_ptr'.
-		do
-			create managed_pointer.own_from_pointer (a_ptr, structure_size)
-			internal_item := a_ptr
-			shared := False
-		end
-
 feature -- Access
 
 	value_type: INTEGER
 		do
 			Result := c_value_type (item)
+		end
+
+
+feature -- Removal
+
+	dispose
+		do
+			if shared then
+				c_bson_value_destroy (item)
+			end
 		end
 
 feature {NONE} -- Implementation
@@ -61,5 +60,12 @@ feature {NONE} -- Implementation
 			"C inline use <bson.h>"
 		alias
 			"sizeof(bson_decimal128_t)"
+		end
+
+	c_bson_value_destroy (a_value: POINTER)
+		external
+			"C inline use <bson.h>"
+		alias
+			"bson_value_destroy ((bson_value_t *)$a_value);"
 		end
 end

@@ -36,13 +36,13 @@ feature {NONE} -- Initialization
 			l_doc.bson_append_utf8 ("hello", "world")
 
                 -- insert a document
-			create l_error
+			create l_error.make
 			l_collection.insert_one (l_doc, Void, Void, l_error)
 
                 -- delete the document.
 			create l_doc.make
 			l_doc.bson_append_oid ("_id", l_oid)
-			create l_error
+			create l_error.make
 			l_collection.delete_one (l_doc, Void, Void, l_error)
 		end
 end

@@ -101,7 +101,7 @@ feature -- Access
 		do
 			reset
 			create l_doc.make_from_json (a_book.to_json_string)
-			create l_error
+			create l_error.make
 			mongodb_collection.insert_one (l_doc, Void, Void, l_error)
 			post_execution (l_error)
 		end
@@ -138,7 +138,7 @@ feature -- Access
 			reset
 			create l_doc.make
 			l_doc.bson_append_utf8 ("_id", a_id)
-			create l_error
+			create l_error.make
 			mongodb_collection.delete_one (l_doc, Void, Void, l_error)
 			post_execution (l_error)
 		end
@@ -157,7 +157,7 @@ feature -- Access
 			create l_update.make
 			l_update.bson_append_document ("$set", l_subdoc)
 
-			create l_error.default_create
+			create l_error.make
 			mongodb_collection.update_one (l_query, l_update, Void, Void, l_error)
 			post_execution (l_error)
 		end
@@ -175,7 +175,7 @@ feature {NONE} -- Implementation
 			-- and set the error `a_error' to error.
 		do
 			if mongodb_collection.has_error then
-				create error.make_own_from_pointer (a_error.item)
+				create error.make_by_pointer (a_error.item)
 			end
 		end
 end

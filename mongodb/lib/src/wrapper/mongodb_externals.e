@@ -381,6 +381,22 @@ feature -- Mongo Collection
 			]"
 		end
 
+
+	c_mongoc_collection_insert_many (a_collection: POINTER; a_documents: POINTER; a_val: INTEGER; a_opts: POINTER; a_reply: POINTER; a_error: POINTER): BOOLEAN
+		external
+			"C inline use <mongoc.h>"
+		alias
+			"[
+			   	return	mongoc_collection_insert_many ((mongoc_collection_t *)$a_collection,
+                               (const bson_t **)$a_documents,
+                               (size_t) $a_val,
+                               (const bson_t *)$a_opts,
+                               (bson_t *)$a_reply,
+                               (bson_error_t *)$a_error);
+			]"
+		end
+
+
 	c_mongoc_collection_find_with_opts (a_collection: POINTER; a_filter: POINTER; a_opts: POINTER; a_read_prefs: POINTER): POINTER
 		external
 			"C inline use <mongoc.h>"
@@ -621,6 +637,15 @@ feature -- URI
 			]"
 		end
 
+	c_mongoc_uri_new_with_error	(a_uri: POINTER; a_error: POINTER): POINTER
+		external
+			"C inline use <mongoc.h>"
+		alias
+			"[
+				return mongoc_uri_new_with_error ((const char *)$a_uri,(bson_error_t *)$a_error);
+			]"
+		end
+
 feature -- Mongo Read Preference
 
 	c_mongoc_read_prefs_new (a_read_mode: INTEGER): POINTER
@@ -813,7 +838,7 @@ feature -- MongoDB Session Options
 			"C inline use <mongoc.h>"
 		alias
 			"[
-				return 	mongoc_session_opts_set_causal_consistency ((mongoc_session_opt_t *)$a_opts, (bool)$a_causal_consistency);	
+				return 	mongoc_session_opts_set_causal_consistency ((mongoc_session_opt_t *)$a_opts, (bool)$a_causal_consistency);
 			]"
 		end
 

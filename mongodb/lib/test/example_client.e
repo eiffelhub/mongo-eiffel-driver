@@ -21,8 +21,6 @@ feature -- Initialization
 			l_client.set_error_api ({MONGODB_EXTERNALS}.mongoc_error_api_version_2)
 			create l_bson.make
 			l_bson.bson_append_utf8 ("hello", "world")
-
-			
 		end
 
 end

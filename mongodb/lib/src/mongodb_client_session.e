@@ -9,24 +9,23 @@ class
 
 inherit
 
-	MEMORY_STRUCTURE
-		rename
-			make as memory_make
-		end
+	MONGODB_WRAPPER_BASE
 
 create
-	make_own_from_pointer
+	make_by_pointer
 
 feature {NONE} -- Initialization
 
-	make_own_from_pointer (a_ptr: POINTER)
-			-- Initialize current with `a_ptr'.
-		do
-			create managed_pointer.own_from_pointer (a_ptr, structure_size)
-			internal_item := a_ptr
-			shared := False
-		end
 
+feature -- Removal
+
+	dispose
+			-- <Precursor>
+		do
+			if shared then
+				c_mongoc_client_session_destroy (item)
+			end
+		end
 
 feature {NONE} -- Measurement
 
@@ -41,6 +40,13 @@ feature {NONE} -- Measurement
 			"C inline use <mongoc.h>"
 		alias
 			"return sizeof(mongoc_client_session_t *);"
+		end
+
+	c_mongoc_client_session_destroy (a_session: POINTER)
+		external
+			"C inline use <mongoc.h>"
+		alias
+			"mongoc_client_session_destroy ((mongoc_client_session_t *)$a_session);	"
 		end
 
 end

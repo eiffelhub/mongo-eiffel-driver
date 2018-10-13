@@ -39,7 +39,7 @@ feature {NONE} -- Initialization
 			create l_doc.make
 			l_doc.bson_append_oid ("_id", l_oid)
 			l_doc.bson_append_utf8 ("key", "Hello Eiffel")
-			create l_error.default_create
+			create l_error.make
 			l_collection.insert_one (l_doc, Void, Void, l_error)
 
 				-- Update the document we just create
@@ -50,7 +50,7 @@ feature {NONE} -- Initialization
 			l_subdoc.bson_append_boolean ("updated", True)
 			create l_update.make
 			l_update.bson_append_document ("$set", l_subdoc)
-			create l_error.default_create
+			create l_error.make
 			l_collection.update_one (l_query, l_update, Void, Void, l_error)
 		end
 

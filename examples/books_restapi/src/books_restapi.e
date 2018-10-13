@@ -26,8 +26,10 @@ feature {NONE} -- Initialization
 			-- Initialize current service.
 		do
 			Precursor
-			set_service_option ("port", 9797)
+			set_service_option ("port", 7979)
 			set_service_option ("verbose", "yes")
+			set_service_option ("max_concurrent_connections","10")
+			set_service_option ("max_tcp_clients","10")
 		end
 
 end

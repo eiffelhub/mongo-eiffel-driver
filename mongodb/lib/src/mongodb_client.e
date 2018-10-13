@@ -13,13 +13,12 @@ class
 
 inherit
 
-	MEMORY_STRUCTURE
+	MONGODB_WRAPPER_BASE
 		rename
 			make as memory_make
 		end
-
 create
-	make, make_own_from_pointer, make_from_uri
+	make, make_by_pointer, make_from_uri
 
 feature {NONE}-- Initialization
 
@@ -28,32 +27,24 @@ feature {NONE}-- Initialization
 		do
 			memory_make
 			mongoc_init
-			new_mongoc_cient (a_uri)
+			new_mongoc_client (a_uri)
 		end
 
 	make_from_uri (a_uri: MONGODB_URI)
 		do
 			memory_make
 			mongoc_init
-			make_own_from_pointer ({MONGODB_EXTERNALS}.c_mongoc_client_new_from_uri (a_uri.item))
+			make_by_pointer ({MONGODB_EXTERNALS}.c_mongoc_client_new_from_uri (a_uri.item))
 			check success: item /= default_pointer end
 		end
 
-	make_own_from_pointer (a_ptr: POINTER)
-			-- Initialize current with `a_ptr'.
-		do
-			create managed_pointer.own_from_pointer (a_ptr, structure_size)
-			internal_item := a_ptr
-			shared := False
-		end
-
-	new_mongoc_cient (a_uri: STRING_8)
+	new_mongoc_client (a_uri: STRING_8)
 			-- new mongodb client instance using the uri `a_uri'.
 		local
 			c_string: C_STRING
 		do
 			create c_string.make (a_uri)
-			make_own_from_pointer ({MONGODB_EXTERNALS}.c_mongoc_client_new (c_string.item))
+			make_by_pointer ({MONGODB_EXTERNALS}.c_mongoc_client_new (c_string.item))
 			check success: item /= default_pointer end
 		end
 
@@ -85,12 +76,22 @@ feature -- Error
 			end
 		end
 
+feature -- Removal
+
+	dispose
+			-- <Precursor>
+		do
+			if shared then
+				c_mongoc_client_destroy (item)
+			end
+		end
+
 feature -- Access
 
 	uri: MONGODB_URI
 			-- Fetches the mongoc_uri_t used to create the client.
 		do
-			create Result.make_own_from_pointer ({MONGODB_EXTERNALS}.c_mongoc_client_get_uri (item))
+			create Result.make_by_pointer ({MONGODB_EXTERNALS}.c_mongoc_client_get_uri (item))
 		end
 
 	collection (a_db: STRING_8; a_colleciton: STRING): MONGODB_COLLECTION
@@ -104,7 +105,7 @@ feature -- Access
 			create c_db.make (a_db)
 			create c_collection.make (a_colleciton)
 			l_ptr := {MONGODB_EXTERNALS}.c_mongoc_client_get_collection (item, c_db.item, c_collection.item)
-			create Result.make_own_from_pointer (l_ptr)
+			create Result.make_by_pointer (l_ptr)
 		end
 
 	database (a_dbname: STRING_8): MONGODB_DATABASE
@@ -117,7 +118,7 @@ feature -- Access
 		do
 			create c_name.make (a_dbname)
 			l_ptr := {MONGODB_EXTERNALS}.c_mongoc_client_get_database (item, c_name.item)
-			create Result.make_own_from_pointer (l_ptr)
+			create Result.make_by_pointer (l_ptr)
 		end
 
 	database_names (a_opts: detachable BSON): LIST [STRING]
@@ -137,7 +138,7 @@ feature -- Access
 			if attached a_opts then
 				l_opts := a_opts.item
 			end
-			create l_error.default_create
+			create l_error.make
 			create l_res.default_create
 			l_ptr := {MONGODB_EXTERNALS}.c_mongoc_client_get_database_names_with_opts (item, l_opts, l_error.item)
 			l_res := {MONGODB_EXTERNALS}.c_mongoc_client_get_database_names_count (item, l_opts, l_error.item)
@@ -164,7 +165,7 @@ feature -- Access
 		do
 			l_ptr := {MONGODB_EXTERNALS}.c_mongoc_client_get_default_database (item)
 			if l_ptr /= default_pointer then
-				create Result.make_own_from_pointer (l_ptr)
+				create Result.make_by_pointer (l_ptr)
 			end
 		end
 
@@ -178,7 +179,8 @@ feature -- Access
 			if attached a_opts then
 				l_opts := a_opts.item
 			end
-			create Result.make_own_from_pointer({MONGODB_EXTERNALS}.c_mongoc_client_find_databases_with_opts (item, l_opts))
+--			create Result.make_own_from_pointer({MONGODB_EXTERNALS}.c_mongoc_client_find_databases_with_opts (item, l_opts))
+			create Result.make({MONGODB_EXTERNALS}.c_mongoc_client_find_databases_with_opts (item, l_opts))
 		end
 
 
@@ -188,7 +190,7 @@ feature -- Access
 		note
 			EIS: "name=mongoc_client_get_read_concern", "src=http://mongoc.org/libmongoc/current/mongoc_client_get_read_concern.html", "protocol=uri"
 		do
-			create Result.make_own_from_pointer ({MONGODB_EXTERNALS}.c_mongoc_client_get_read_concern (item))
+			create Result.make_by_pointer ({MONGODB_EXTERNALS}.c_mongoc_client_get_read_concern (item))
 		end
 
 	read_preferences: MONGODB_READ_PREFERENCE
@@ -197,7 +199,7 @@ feature -- Access
 		note
 			EIS: "name=mongoc_client_get_read_prefs", "src=http://mongoc.org/libmongoc/current/mongoc_client_get_read_prefs.html", "protocol=uri"
 		do
-			create Result.make_own_from_pointer ({MONGODB_EXTERNALS}.c_mongoc_client_get_read_prefs (item))
+			create Result.make_by_pointer ({MONGODB_EXTERNALS}.c_mongoc_client_get_read_prefs (item))
 		end
 
 	server_descriptions: LIST [MONGODB_SERVER_DESCRIPTION]
@@ -216,7 +218,7 @@ feature -- Access
 			until
 				i = l_mgr.count
 			loop
-				Result.force (create {MONGODB_SERVER_DESCRIPTION}.make_own_from_pointer (l_mgr.read_pointer (i)))
+				Result.force (create {MONGODB_SERVER_DESCRIPTION}.make_by_pointer (l_mgr.read_pointer (i)))
 				i := i + c_sizeof (l_ptr)
 			end
 		end
@@ -235,7 +237,7 @@ feature -- Status
 				l_prefs := a_read_prefs.item
 			end
 			create l_reply.make
-			create l_error.default_create
+			create l_error.make
 			l_res :={MONGODB_EXTERNALS}.c_mongoc_client_get_server_status (item, l_prefs, l_reply.item, l_error.item)
 			Result := l_reply
 			if l_res then
@@ -325,7 +327,7 @@ feature -- Command
 			end
 			l_res := {MONGODB_EXTERNALS}.c_mongoc_client_command_simple (item, c_db.item, a_command.item, l_read_prefs, a_reply.item, l_error)
 			if l_res then
-				create error.make_own_from_pointer (l_error)
+				create error.make_by_pointer (l_error)
 			else
 				error := Void
 			end
@@ -375,7 +377,7 @@ feature -- Session
 			create l_error.make
 			l_ptr := {MONGODB_EXTERNALS}.c_mongoc_client_start_session (item, l_opts, l_error.item )
 				-- TODO check if there was an error. check l_error.
-			create Result.make_own_from_pointer (l_ptr)
+			create Result.make_by_pointer (l_ptr)
 		end
 
 feature {NONE} -- Measurement
@@ -401,6 +403,13 @@ feature {NONE} -- Measurement
 			"C inline use <mongoc.h>"
 		alias
 			"return sizeof ($ptr)"
+		end
+
+	c_mongoc_client_destroy (a_client: POINTER)
+		external
+			"C inline use <mongoc.h>"
+		alias
+			"mongoc_client_destroy ((mongoc_client_t *)$a_client);"
 		end
 
 end

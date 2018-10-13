@@ -14,31 +14,17 @@ class
 	BSON_ITERATOR
 
 inherit
-	MEMORY_STRUCTURE
-		export
-			{ANY} managed_pointer
-		undefine
-			default_create
-		end
 
-create default_create, make_own_from_pointer
+	BSON_WRAPPER_BASE
 
-feature {NONE} -- Creation
+create make, make_by_pointer
 
-	default_create
-			-- Initialize an empty iterator structure,
-		local
-			res: INTEGER_32
+
+feature -- Removal
+
+	dispose
+			-- <Precursor>
 		do
-			make
-		end
-
-	make_own_from_pointer (a_ptr: POINTER)
-			-- Initialize current with `a_ptr'.
-		do
-			create managed_pointer.own_from_pointer (a_ptr, structure_size)
-			internal_item := a_ptr
-			shared := False
 		end
 
 feature -- Operations

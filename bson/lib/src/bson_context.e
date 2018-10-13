@@ -13,38 +13,36 @@ class
 	BSON_CONTEXT
 inherit
 
-	MEMORY_STRUCTURE
+	BSON_WRAPPER_BASE
 		rename
 			make as memory_make
 		end
 
 create
-	make, make_own_from_pointer, make_default
+	make, make_by_pointer
 
 feature {NONE} -- Initialization
 
 	make
-		do
-			memory_make
-		end
-
-	make_own_from_pointer (a_ptr: POINTER)
-			-- Initialize current with `a_ptr'.
-		do
-			create managed_pointer.own_from_pointer (a_ptr, structure_size)
-			internal_item := a_ptr
-			shared := False
-		end
-
-	make_default
 			-- Create the default, thread-safe, bson_context_t for the process.
 		local
 			l_pointer: POINTER
 		do
 			l_pointer := c_bson_context_get_default
-			make_own_from_pointer (l_pointer)
+			make_by_pointer (l_pointer)
 		end
 
+feature -- Removal
+
+	dispose
+			-- <Precursor>
+		do
+			if shared then
+				c_bson_context_destroy (item)
+			else
+				-- Memory managed by Eiffel.
+			end
+		end
 
 feature {NONE} -- Implementation
 
@@ -67,5 +65,13 @@ feature {NONE} -- Implementation
 		alias
 			"sizeof(bson_context_t *)"
 		end
+
+	c_bson_context_destroy (a_context: POINTER)
+		external
+			"C inline use <bson.h>"
+		alias
+			"bson_context_destroy ((bson_context_t *)$a_context);	"
+		end
+
 end
 

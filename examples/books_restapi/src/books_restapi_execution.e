@@ -20,7 +20,7 @@ inherit
 	WSF_URI_TEMPLATE_HELPER_FOR_ROUTED_EXECUTION
 
 	WSF_RESOURCE_HANDLER_HELPER
-	
+
 create
 	make
 
@@ -31,6 +31,7 @@ feature {NONE} -- Initialization
 		do
 			Precursor
 			initialize_router
+			create mongodb_connection
 		end
 
  	setup_router
@@ -47,6 +48,8 @@ feature {NONE} -- Initialization
  			fhdl.set_directory_index (<<"index.html">>)
  			router.handle ("/", fhdl, router.methods_GET)
  		end
+
+	mongodb_connection: detachable MONGODB_CONNECTION
 
  feature  -- Handle HTML pages
 
@@ -82,7 +85,7 @@ feature {NONE} -- Initialization
  			else
  				handle_internal_server_error ("{%"error%":%"Internal Server Error: host not found%"}", req, res)
  			end
-		end
+ 		end
 
 	handle_item (req: WSF_REQUEST; res: WSF_RESPONSE)
 		local
@@ -140,6 +143,7 @@ feature {NONE} -- Initialization
 			else
  				handle_internal_server_error ("{%"error%":%"Internal Server Error: host not found%"}", req, res)
  			end
+
 		end
 
  feature -- Compute Response
@@ -223,13 +227,15 @@ feature {NONE} -- Initialization
 feature -- MongoDB
 
 	mongodb_client: MONGODB_CLIENT
+		local
+			uri: MONGODB_URI
 		do
-				-- Initialize and create a new mongobd client instance.
-			create Result.make ("mongodb://127.0.0.1:27017")
+			create uri.make ("mongodb://127.0.0.1:27017")
+			create Result.make_from_uri (uri)
 
-		     	-- Register the application name so we can track it in the profile logs
-		     	-- on the server. This can also be done from the URI (see other examples).
-		    Result.set_appname (app_name)
+				-- Register the application name so we can track it in the profile logs
+				-- on the server. This can also be done from the URI (see other examples).
+			Result.set_appname (app_name)
 		end
 
 	app_name: STRING = "books_restapi"

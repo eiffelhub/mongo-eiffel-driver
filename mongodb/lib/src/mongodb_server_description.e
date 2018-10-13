@@ -9,24 +9,15 @@ class
 
 inherit
 
-	MEMORY_STRUCTURE
+	MONGODB_WRAPPER_BASE
 		rename
 			make as memory_make
 		end
 
 create
-	 make_own_from_pointer
+	 make_by_pointer
 
 feature {NONE}-- Initialization
-
-	make_own_from_pointer (a_ptr: POINTER)
-			-- Initialize current with `a_ptr'.
-		do
-			create managed_pointer.own_from_pointer (a_ptr, structure_size)
-			internal_item := a_ptr
-			shared := False
-		end
-
 
 feature -- Factory
 
@@ -35,7 +26,17 @@ feature -- Factory
 		note
 			EIS: "name=_mongoc_server_description_new_copy", "src=http://mongoc.org/libmongoc/current/mongoc_server_description_new_copy.html", "protocol=uri"
 		do
-			create Result.make_own_from_pointer ({MONGODB_EXTERNALS}.c_mongoc_server_description_new_copy (item))
+			create Result.make_by_pointer ({MONGODB_EXTERNALS}.c_mongoc_server_description_new_copy (item))
+		end
+
+feature -- Removal
+
+	dispose
+			-- <Precursor>
+		do
+			if shared then
+				c_mongoc_server_description_destroy (item)
+			end
 		end
 
 feature -- Access
@@ -54,7 +55,7 @@ feature -- Access
 		note
 			EIS: "name=mongoc_server_description_ismaster", "src= http://mongoc.org/libmongoc/current/mongoc_server_description_ismaster.html", "protocol=uri"
 		do
-			create Result.make_own_from_pointer ({MONGODB_EXTERNALS}.c_mongoc_server_description_ismaster (item))
+			create Result.make_by_pointer ({MONGODB_EXTERNALS}.c_mongoc_server_description_ismaster (item))
 		end
 
 	round_trip_time: INTEGER_64
@@ -88,6 +89,13 @@ feature {NONE} -- Measurement
 			"C inline use <mongoc.h>"
 		alias
 			"return sizeof(mongoc_server_description_t *);"
+		end
+
+	c_mongoc_server_description_destroy (a_description: POINTER)
+		external
+			"C inline use <mongoc.h>"
+		alias
+			"mongoc_server_description_destroy ((mongoc_server_description_t *)$a_description);"
 		end
 
 end

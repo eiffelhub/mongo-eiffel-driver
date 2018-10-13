@@ -25,7 +25,7 @@
 #define MONGOC_USER_SET_LDFLAGS "/machine:x64"
 
 /* MONGOC_CC is used to determine what C compiler was used to compile mongoc */
-#define MONGOC_CC "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.11.25503/bin/HostX86/x64/cl.exe"
+#define MONGOC_CC "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.15.26726/bin/Hostx86/x64/cl.exe"
 
 /*
  * MONGOC_ENABLE_SSL_SECURE_CHANNEL is set from configure to determine if we are
@@ -203,23 +203,10 @@
 
 
 /*
- * MONGOC_HAVE_WEAK_SYMBOLS is set from configure to determine if the
- * compiler supports the (weak) annotation. We use it to prevent
- * Link-Time-Optimization (LTO) in our constant-time mongoc_memcmp()
- * This is known to work with GNU GCC and Solaris Studio
- */
-#define MONGOC_HAVE_WEAK_SYMBOLS 0
-
-#if MONGOC_HAVE_WEAK_SYMBOLS != 1
-#  undef MONGOC_HAVE_WEAK_SYMBOLS
-#endif
-
-
-/*
  * Disable automatic calls to mongoc_init() and mongoc_cleanup()
  * before main() is called, and after exit() (respectively).
  */
-#define MONGOC_NO_AUTOMATIC_GLOBALS 0
+#define MONGOC_NO_AUTOMATIC_GLOBALS 1
 
 #if MONGOC_NO_AUTOMATIC_GLOBALS != 1
 #  undef MONGOC_NO_AUTOMATIC_GLOBALS
@@ -330,6 +317,57 @@
 #  undef MONGOC_ENABLE_COMPRESSION_ZLIB
 #endif
 
+/*
+ * Set if performance counters are available and not disabled.
+ *
+ */
+#define MONGOC_ENABLE_SHM_COUNTERS 0
+
+#if MONGOC_ENABLE_SHM_COUNTERS != 1
+#  undef MONGOC_ENABLE_SHM_COUNTERS
+#endif
+
+/*
+ * Set if we have enabled fast counters on Intel using the RDTSCP instruction
+ *
+ */
+#define MONGOC_ENABLE_RDTSCP 0
+
+#if MONGOC_ENABLE_RDTSCP != 1
+#  undef MONGOC_ENABLE_RDTSCP
+#endif
+
+
+/*
+ * Set if we have the sched_getcpu() function for use with counters
+ *
+ */
+#define MONGOC_HAVE_SCHED_GETCPU 0
+
+#if MONGOC_HAVE_SCHED_GETCPU != 1
+#  undef MONGOC_HAVE_SCHED_GETCPU
+#endif
+
+/*
+ * Set if tracing is enabled. Logs things like network communication and
+ * entry/exit of certain functions.
+ *
+ */
+#define MONGOC_TRACE 0
+
+#if MONGOC_TRACE != 1
+#  undef MONGOC_TRACE
+#endif
+
+/*
+ * Set if we have ICU support.
+ */
+#define MONGOC_ENABLE_ICU 0
+
+#if MONGOC_ENABLE_ICU != 1
+#  undef MONGOC_ENABLE_ICU
+#endif
+
 
 /*
  * NOTICE:
@@ -338,6 +376,7 @@
  * o The bitfield in mongoc-handshake-private.h
  * o _get_config_bitfield() in mongoc-handshake.c
  * o examples/parse_handshake_cfg.py
+ * o test_handshake_config_string in test-mongoc-handshake.c
  */
 
 #endif /* MONGOC_CONFIG_H */

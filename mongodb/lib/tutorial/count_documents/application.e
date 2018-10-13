@@ -33,7 +33,7 @@ feature {NONE} -- Initialization
 			l_collection := l_client.collection ("mydb", "mycoll")
 			create l_doc.make
 			l_doc.bson_append_utf8 ("hello", "eiffel")
-			create l_error
+			create l_error.make
 			l_count := l_collection.count ((create {MONGODB_QUERY_FLAG}).mongoc_query_none, l_doc, 0, 0, Void, l_error)
 			if l_count < 0 then
 				print ("Error message: " + l_error.message)

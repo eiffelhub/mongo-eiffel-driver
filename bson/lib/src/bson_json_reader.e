@@ -14,7 +14,7 @@ class
 
 inherit
 
-	MEMORY_STRUCTURE
+	BSON_WRAPPER_BASE
 		rename
 			make as memory_make
 		end
@@ -26,16 +26,8 @@ feature {NONE} -- Initialization
 
 	make (a_filename: PATH)
 		do
-			create error
+			create error.make
 			make_by_pointer (bson_json_reader_new_from_file (a_filename, error))
-		end
-
-	make_own_from_pointer (a_ptr: POINTER)
-			-- Initialize current with `a_ptr'.
-		do
-			create managed_pointer.own_from_pointer (a_ptr, structure_size)
-			internal_item := a_ptr
-			shared := False
 		end
 
 	bson_json_reader_new_from_file (a_file_name: PATH; a_error: BSON_ERROR): POINTER
@@ -44,6 +36,16 @@ feature {NONE} -- Initialization
 		do
 			create l_filename.make (a_file_name.absolute_path.name)
 			Result := c_bson_json_reader_new_from_file (l_filename.item, a_error.item)
+		end
+
+feature -- Removal
+
+	dispose
+			-- <Precursor>
+		do
+			if shared then
+				c_bson_json_reader_destroy (item)
+			end
 		end
 
 feature -- Operations
@@ -89,6 +91,13 @@ feature {NONE} -- c EXTERNALS
 			"C inline use <bson.h>"
 		alias
 			"return bson_json_reader_read ((bson_json_reader_t *)$a_reader, (bson_t *)$a_bson, (bson_error_t *)$a_error); "
+		end
+
+	c_bson_json_reader_destroy (a_reader: POINTER)
+		external
+			"C inline use <bson.h>"
+		alias
+			"bson_json_reader_destroy ((bson_json_reader_t *)$a_reader);"
 		end
 
 

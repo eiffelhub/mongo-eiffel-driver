@@ -15,15 +15,14 @@ class
 	BSON_OID
 
 inherit
-	MEMORY_STRUCTURE
+
+	BSON_WRAPPER_BASE
 		rename
-			make as make_memory
-		export
-			{ANY} managed_pointer
+			make as make_empty
 		end
 
 create
-	make, make_empty, make_own_from_pointer, make_with_string
+	make, make_empty, make_by_pointer, make_with_string
 
 feature {NONE} -- Creation
 
@@ -33,20 +32,6 @@ feature {NONE} -- Creation
 			bson_oid_init (a_context)
 		end
 
-	make_empty
-			-- Initialize an empty OID structure,
-		do
-			make_memory
-		end
-
-	make_own_from_pointer (a_ptr: POINTER)
-			-- Initialize current with `a_ptr'.
-		do
-			create managed_pointer.own_from_pointer (a_ptr, structure_size)
-			internal_item := a_ptr
-			shared := False
-		end
-
 	make_with_string (a_string: STRING)
 		require
 			a_string /= Void
@@ -54,10 +39,18 @@ feature {NONE} -- Creation
 			c_str: C_STRING
 		do
 			create c_str.make (a_string)
-			make_memory
+			make_empty
 				-- Keep a reference to `a_string'
 			any_data := a_string
 			c_bson_oid_init_from_string (item, c_str.item);
+		end
+
+feature -- Removal
+
+	dispose
+			-- <Precursor>
+		do
+
 		end
 
 feature -- Access

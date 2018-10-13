@@ -28,7 +28,7 @@
  * dependent. For example, some PPC or ARM systems may not have it even
  * if it is a recent GCC version.
  */
-#define BSON_HAVE_ATOMIC_32_ADD_AND_FETCH 1
+#define BSON_HAVE_ATOMIC_32_ADD_AND_FETCH 0
 #if BSON_HAVE_ATOMIC_32_ADD_AND_FETCH != 1
 # undef BSON_HAVE_ATOMIC_32_ADD_AND_FETCH
 #endif
@@ -36,19 +36,9 @@
 /*
  * Similarly, define to 1 if we have access to GCC 64-bit atomic builtins.
  */
-#define BSON_HAVE_ATOMIC_64_ADD_AND_FETCH 1
+#define BSON_HAVE_ATOMIC_64_ADD_AND_FETCH 0
 #if BSON_HAVE_ATOMIC_64_ADD_AND_FETCH != 1
 # undef BSON_HAVE_ATOMIC_64_ADD_AND_FETCH
-#endif
-
-
-/*
- * Define to 1 if your system requires {} around PTHREAD_ONCE_INIT.
- * This is typically just Solaris 8-10.
- */
-#define BSON_PTHREAD_ONCE_INIT_NEEDS_BRACES 0
-#if BSON_PTHREAD_ONCE_INIT_NEEDS_BRACES != 1
-# undef BSON_PTHREAD_ONCE_INIT_NEEDS_BRACES
 #endif
 
 
@@ -58,6 +48,15 @@
 #define BSON_HAVE_CLOCK_GETTIME 0
 #if BSON_HAVE_CLOCK_GETTIME != 1
 # undef BSON_HAVE_CLOCK_GETTIME
+#endif
+
+
+/*
+ * Define to 1 if you have strings.h available on your platform.
+ */
+#define BSON_HAVE_STRINGS_H 0
+#if BSON_HAVE_STRINGS_H != 1
+# undef BSON_HAVE_STRINGS_H
 #endif
 
 

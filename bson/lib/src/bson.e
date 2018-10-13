@@ -1,6 +1,6 @@
 note
 	description: "[
-			Objec representing the bson_t structure 
+			Object representing the bson_t structure 
 			It represents a BSON document. 
 			This structure manages the underlying BSON encoded buffer. For mutable documents, it can append new data to the document.
 	]"
@@ -13,13 +13,13 @@ class
 
 inherit
 
-	MEMORY_STRUCTURE
+	BSON_WRAPPER_BASE
 		rename
 			make as memory_make
 		end
 
 create
-	make, make_empty, make_own_from_pointer, make_from_json
+	make, make_by_pointer , make_from_json
 
 feature {NONE}-- Initialization
 
@@ -29,35 +29,22 @@ feature {NONE}-- Initialization
 			bson_init
 		end
 
-	make_empty
-		do
-			memory_make
-		end
-
-	bson_init
-			-- Initializes the given bson_t structure.
-		do
-			c_bson_init (item)
-		end
-
-	make_own_from_pointer (a_ptr: POINTER)
-			-- Initialize current with `a_ptr'.
-		do
-			create managed_pointer.own_from_pointer (a_ptr, structure_size)
-			internal_item := a_ptr
-			shared := False
-		end
-
 	make_from_json (a_data: STRING_8)
 		local
 			l_data: C_STRING
 			l_error: BSON_ERROR
 			l_pointer: POINTER
 		do
-			create l_error
+			create l_error.make
 			create l_data.make (a_data)
 			l_pointer := c_bson_new_from_json (l_data.item, l_data.count, l_error.item)
-			make_own_from_pointer (l_pointer)
+			make_by_pointer (l_pointer)
+		end
+
+	bson_init
+			-- Initializes the given bson_t structure.
+		do
+			c_bson_init (item)
 		end
 
 feature -- Access
@@ -255,7 +242,7 @@ feature -- Operations
 			EIS: "name=bson_append_now_utc", "src=http://mongoc.org/libbson/current/bson_append_now_utc.html", "protocol=uri"
 		local
 			c_key: C_STRING
-			l_res: BOOLEAN 
+			l_res: BOOLEAN
 		do
 			create c_key.make (a_key)
 			l_res := c_bson_append_now_utc (item, c_key.item, c_key.count)
@@ -282,7 +269,7 @@ feature -- Append Document
 			l_result: BSON
 		do
 			create c_key.make (a_key)
-			create l_result.make_empty
+			create l_result.make
 			l_res := c_bson_append_document_begin (item, c_key.item, c_key.count, l_result.item)
 			Result := l_result
 		end
@@ -315,7 +302,7 @@ feature -- Operations
 
 	bson_copy: BSON
 		do
-			create Result.make_own_from_pointer (c_bson_copy (item))
+			create Result.make_by_pointer (c_bson_copy (item))
 		end
 
 	bson_copy_to (a_dst: BSON)
@@ -346,7 +333,7 @@ feature -- Append Array
 			l_result: BSON
 		do
 			create c_key.make (a_key)
-			create l_result.make_empty
+			create l_result.make
 			l_res := c_bson_append_array_begin (item, c_key.item, c_key.count, l_result.item)
 			Result := l_result
 		end
@@ -427,6 +414,19 @@ feature -- BSON to JSON
 			create l_res.make_by_pointer (c_bson_array_as_json (item))
 			Result := l_res.string
 		end
+
+feature -- Removal
+
+	dispose
+			-- <Precursor>
+		do
+			if shared then
+--				c_bson_destroy (item)
+			else
+				-- memory is handled by Eiffel.
+			end
+		end
+
 
 feature -- Measurement
 
@@ -726,6 +726,14 @@ feature {NONE} -- C externals
 		alias
 			"[
 				return (EIF_BOOLEAN) bson_append_now_utc ((bson_t *)$a_bson, (const char *)$a_key, (int)$a_length);
+			]"
+		end
+
+	c_bson_destroy (a_bson: POINTER)
+		external "C inline use <bson.h>"
+		alias
+			"[
+				bson_destroy ((bson_t *)$a_bson);
 			]"
 		end
 

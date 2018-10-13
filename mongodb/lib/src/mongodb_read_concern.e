@@ -19,13 +19,12 @@ class
 
 inherit
 
-	MEMORY_STRUCTURE
-		rename
-			make as memory_make
-		end
-
+	MONGODB_WRAPPER_BASE
+			rename
+				make as memory_make
+			end
 create
-	make, make_own_from_pointer
+	make, make_by_pointer
 
 feature {NONE} -- Initialization
 
@@ -35,14 +34,6 @@ feature {NONE} -- Initialization
 			read_concern_new
 		end
 
-	make_own_from_pointer (a_ptr: POINTER)
-			-- Initialize current with `a_ptr'.
-		do
-			create managed_pointer.own_from_pointer (a_ptr, structure_size)
-			internal_item := a_ptr
-			shared := False
-		end
-
 	read_concern_new
 		note
 			EIS: "name=mongoc_read_concern_new", "src=http://mongoc.org/libmongoc/current/mongoc_read_concern_new.html", "protocol=uri"
@@ -50,9 +41,19 @@ feature {NONE} -- Initialization
 			l_ptr: POINTER
 		do
 			l_ptr := {MONGODB_EXTERNALS}.c_mongoc_read_concern_new
-			make_own_from_pointer (l_ptr)
+			make_by_pointer (l_ptr)
 		end
 
+
+feature -- Removal
+
+	dispose
+			-- <Precursor>
+		do
+			if shared then
+				c_mongoc_read_concern_destroy (item)
+			end
+		end
 feature -- Status Report
 
 	is_default: BOOLEAN
@@ -110,5 +111,11 @@ feature {NONE} -- Measurement
 			"return sizeof(mongoc_read_prefs_t *);"
 		end
 
+	c_mongoc_read_concern_destroy (a_read_concern: POINTER)
+		external
+			"C inline use <mongoc.h>"
+		alias
+			"mongoc_read_concern_destroy ((mongoc_read_concern_t *)$a_read_concern);"
+		end
 
 end

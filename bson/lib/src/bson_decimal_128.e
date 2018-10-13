@@ -10,23 +10,15 @@ class
 	BSON_DECIMAL_128
 
 inherit
-	MEMORY_STRUCTURE
-		export
-			{ANY} managed_pointer
-		undefine
-			default_create
-		end
+
+	BSON_WRAPPER_BASE
+
 
 create
-	default_create, make_with_string, make_own_from_pointer
+	make, make_with_string, make_by_pointer
 
 feature {NONE} -- Creation
 
-	default_create
-			-- Initialize an empty decimal structure,
-		do
-			make
-		end
 
 	make_with_string (a_string: STRING)
 		require
@@ -40,13 +32,6 @@ feature {NONE} -- Creation
 			res := c_bson_decimal128_from_string (c_str.item, item)
 		end
 
-	make_own_from_pointer (a_ptr: POINTER)
-			-- Initialize current with `a_ptr'.
-		do
-			create managed_pointer.own_from_pointer (a_ptr, structure_size)
-			internal_item := a_ptr
-			shared := False
-		end
 
 feature -- Access
 
@@ -80,6 +65,13 @@ feature -- Change Element
 	set_low (a_val: INTEGER_64)
 		do
 			c_set_low (item, a_val)
+		end
+
+feature -- Removal
+
+	dispose
+			-- <Precursor>
+		do
 		end
 
 feature {NONE} -- Implementation

@@ -20,7 +20,6 @@ feature {NONE} -- Initialization
 			find_all_documents
 		end
 
-
 	find_all_documents
 		local
 			l_client: MONGODB_CLIENT

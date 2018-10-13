@@ -12,22 +12,18 @@ class
 
 inherit
 
-	MEMORY_STRUCTURE
-		rename
-			make as memory_make
-		end
+	MONGODB_WRAPPER_BASE
 
 create
-	make_own_from_pointer
+	make_by_pointer
 
-feature {NONE} -- Initialization
+feature -- Removal
 
-	make_own_from_pointer (a_ptr: POINTER)
-			-- Initialize current with `a_ptr'.
+	dispose
 		do
-			create managed_pointer.own_from_pointer (a_ptr, structure_size)
-			internal_item := a_ptr
-			shared := False
+			if shared then
+				c_mongoc_database_destroy (item)
+			end
 		end
 
 feature -- Access
@@ -49,7 +45,7 @@ feature -- Access
 			if attached a_opts then
 				l_opts := a_opts.item
 			end
-			create l_error.default_create
+			create l_error.make
 			create l_res.default_create
 			l_ptr := {MONGODB_EXTERNALS}.c_mongoc_database_get_collection_names_with_opts (item, l_opts, l_error.item)
 			l_res := {MONGODB_EXTERNALS}.c_mongoc_database_get_collection_names_count (item, l_opts, l_error.item)
@@ -74,7 +70,7 @@ feature -- Access
 			l_name: C_STRING
 		do
 			create l_name.make (a_name)
-			create Result.make_own_from_pointer ({MONGODB_EXTERNALS}.c_mongoc_database_get_collection (item, l_name.item))
+			create Result.make_by_pointer ({MONGODB_EXTERNALS}.c_mongoc_database_get_collection (item, l_name.item))
 		end
 
 	name: READABLE_STRING_8
@@ -99,7 +95,7 @@ feature -- Drop
 			l_opts: POINTER
 			l_res: BOOLEAN
 		do
-			create l_error.default_create
+			create l_error.make
 			if attached a_opts then
 				l_opts := a_opts.item
 			end
@@ -116,7 +112,7 @@ feature -- Status Report
 			l_error: BSON_ERROR
 			l_name: C_STRING
 		do
-			create l_error.default_create
+			create l_error.make
 			create l_name.make (a_name)
 			Result := {MONGODB_EXTERNALS}.c_mongoc_database_has_collection (item, l_name.item, l_error.item)
 		end
@@ -134,8 +130,8 @@ feature -- Collection
 			if attached a_opts then
 				l_opts := a_opts.item
 			end
-			create l_error.default_create
-			create Result.make_own_from_pointer ({MONGODB_EXTERNALS}.c_mongoc_database_create_collection (item, l_name.item, l_opts, l_error.item))
+			create l_error.make
+			create Result.make_by_pointer ({MONGODB_EXTERNALS}.c_mongoc_database_create_collection (item, l_name.item, l_opts, l_error.item))
 		end
 
 feature {NONE} -- Measurement
@@ -158,6 +154,13 @@ feature {NONE} -- Measurement
 			"C inline use <mongoc.h>"
 		alias
 			"return sizeof ($ptr)"
+		end
+
+	c_mongoc_database_destroy (a_database: POINTER)
+		external
+			"C inline use <mongoc.h>"
+		alias
+			"mongoc_database_destroy ((mongoc_database_t *)$a_database);	"
 		end
 
 end

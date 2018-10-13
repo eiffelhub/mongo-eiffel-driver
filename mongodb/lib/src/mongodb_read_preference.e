@@ -11,13 +11,13 @@ class
 
 inherit
 
-	MEMORY_STRUCTURE
+	MONGODB_WRAPPER_BASE
 		rename
 			make as memory_make
 		end
 
 create
-	 make_own_from_pointer
+	 make, make_by_pointer
 
 feature {NONE} -- Initialization
 
@@ -27,13 +27,6 @@ feature {NONE} -- Initialization
 			read_prefs_new (a_read_mode)
 		end
 
-	make_own_from_pointer (a_ptr: POINTER)
-			-- Initialize current with `a_ptr'.
-		do
-			create managed_pointer.own_from_pointer (a_ptr, structure_size)
-			internal_item := a_ptr
-			shared := False
-		end
 
 	read_prefs_new (a_read_mode:MONGODB_READ_MODE_ENUM)
 			-- Creates a new mongoc_read_prefs_t using the mode specified.
@@ -43,7 +36,17 @@ feature {NONE} -- Initialization
 			l_ptr: POINTER
 		do
 			l_ptr := {MONGODB_EXTERNALS}.c_mongoc_read_prefs_new (a_read_mode.value)
-			make_own_from_pointer (l_ptr)
+			make_by_pointer (l_ptr)
+		end
+
+feature -- Removal
+
+	dispose
+			-- <Precursor>
+		do
+			if shared then
+				c_mongoc_read_prefs_destroy (item)
+			end
 		end
 
 feature -- Access
@@ -68,7 +71,7 @@ feature -- Access
 			l_ptr: POINTER
 		do
 			l_ptr := {MONGODB_EXTERNALS}.c_mongoc_read_prefs_get_tags (item)
-			create Result.make_own_from_pointer (l_ptr)
+			create Result.make_by_pointer (l_ptr)
 		end
 
 feature -- Change Element
@@ -121,6 +124,13 @@ feature {NONE} -- Measurement
 			"C inline use <mongoc.h>"
 		alias
 			"return sizeof(mongoc_read_prefs_t *);"
+		end
+
+	c_mongoc_read_prefs_destroy (a_read_prefs: POINTER)
+		external
+			"C inline use <mongoc.h>"
+		alias
+			"mongoc_read_prefs_destroy ((mongoc_read_prefs_t *)$a_read_prefs);"
 		end
 
 end
